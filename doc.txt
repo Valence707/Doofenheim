@@ -1,0 +1,71 @@
+To-Do:
+    > Add enemy tiers
+    > Add randomized enemy drops (powerups)
+
+    > Add autoaim feature
+    > Make background
+        > Moving mountains
+
+    > Add powerups
+        > Jetpack
+        > Higher Jump
+        > Triple Jump
+        > Increased defense
+        > Health regen
+
+    > Make start menu
+    > Make settings menu
+        > Add shop to buy guns, heals, and other consumables
+
+    > Add "Game Over" Screen
+    > Add ability to buy blocks and other stuff
+
+    > Add melee weapon
+    > Add lives
+
+    > Make player inventory / hotbar for selecting items / guns
+    > Make better terrain generation system (Try Tiled)
+    > Beautify
+        > Collectibles hovering, fly up when collected
+        > Animated player + enemies
+
+    > Optimize (Make faster)
+        > Only render what is visible (i.e. out of screen bounds)
+
+    > DEADLINE: June 10th
+
+Log:
+5-24-2022:
+    > Collision detection finalized
+    > Player movement finalized
+    > Implemented text file-based terrain loader
+    > Fully implemented camera-scrolling feature
+
+5-25-2022:
+    > Added moving clouds
+
+5-26-2022:
+    > Fixed moving clouds, added terrain image, made Mr. Doofenheim
+    > Added red enmemy square that moves
+
+5-27-2022:
+    > Improved level generation system
+        > Added custom spawn location
+        > Added stone and dirt_side terrain types
+
+5-29-2022:
+    > Made shooting work
+    > Added cloud images
+    > Made first level
+        
+5-30-2022:
+    > Added coins
+        > Added coins of different values
+
+    > Added stats display
+    > Added dirt_side blocks
+    > Modularized player updates
+    > Added enemy movement, shooting, and collision detection
+    > Enemies no longer fall off platforms
+    > Improved collision detection
+    > Added healthbars
