@@ -16,6 +16,8 @@ CLOUD_IMAGES = [
     pg.image.load('./images/cloud_3.png')
 ]
 
+pg_icon = pg.image.load('./images/icon.png')
+pg.display.set_icon(pg_icon)
 pg.init()
 clock = pg.time.Clock()
 win = pg.display.set_mode(WIN_SIZE)
@@ -186,8 +188,9 @@ class Player(pg.sprite.Sprite):
             self.rect.x, self.rect.y = player.spawn[0], player.spawn[1]
             self.health = 100
 
-        if self.lives == 0:
-            global gameOver
+        global gameOver
+
+        if self.lives == 0 or len(enemies) <= 0:
             gameOver = True
 
     def movePlayer(self, keys, solids):

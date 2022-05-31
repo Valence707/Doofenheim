@@ -1,5 +1,6 @@
 To-Do:
     > Add enemy tiers
+    > Fix enemy shooting
     > Add randomized enemy drops (powerups)
 
     > Add autoaim feature
@@ -12,6 +13,8 @@ To-Do:
         > Triple Jump
         > Increased defense
         > Health regen
+
+    > Add audio
 
     > Make start menu
     > Make settings menu
@@ -69,3 +72,4 @@ Log:
     > Enemies no longer fall off platforms
     > Improved collision detection
     > Added healthbars
+    > Made spawn system
