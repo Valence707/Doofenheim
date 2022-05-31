@@ -1,6 +1,5 @@
 import math
 import random
-from tkinter import SCROLL
 import pygame as pg
 from pygame.locals import *
 
@@ -9,7 +8,6 @@ DISPLAY_SIZE = [800, 450]
 FPS = 60
 TILE_SIZE = [10, 10]
 GRAVITY = 0.5
-SCROLL_AMOUNT = [0, 0]
 CLOUD_IMAGES = [
     pg.image.load('./images/cloud_1.png'),
     pg.image.load('./images/cloud_2.png'),
@@ -19,6 +17,11 @@ CLOUD_IMAGES = [
 pg_icon = pg.image.load('./images/icon.png')
 pg.display.set_icon(pg_icon)
 pg.init()
+
+background_music = pg.mixer.Sound('./sounds/background_music.ogg')
+background_music.play()
+pg.mixer.init()
+
 clock = pg.time.Clock()
 win = pg.display.set_mode(WIN_SIZE)
 pg.display.set_caption("Doofenheim's Pantless Adventure")
@@ -108,6 +111,9 @@ class Bullet(pg.sprite.Sprite):
         direction = delta.normalize()
         self.vel = direction*self.maxVel
 
+        self.sound = pg.mixer.Sound('./sounds/pew.ogg')
+        self.sound.play()
+
         self.duration = 3
         self.initTime = pg.time.get_ticks()
 
@@ -119,6 +125,7 @@ class Bullet(pg.sprite.Sprite):
     def update(self):
         self.rect = self.rect.move(self.vel)
         if (pg.time.get_ticks()-self.initTime) / 1000 > self.duration or pg.sprite.spritecollideany(self, solids):
+            self.sound.stop()
             self.kill()
 
         # Add collision detection
@@ -167,6 +174,11 @@ class Player(pg.sprite.Sprite):
         self.health = 100
         self.lives = 3
         self.maxHealth = 100
+        self.hurtSound = pg.mixer.Sound('./sounds/hurt.ogg')
+        self.sounds = [pg.mixer.Sound('./sounds/bruh.ogg'), pg.mixer.Sound('./sounds/oof.ogg')]
+        for sound in self.sounds:
+            sound.stop()
+        self.hurtSound.stop()
 
     def update(self, keys):
         player.movePlayer(keys, solids)
@@ -184,17 +196,17 @@ class Player(pg.sprite.Sprite):
 
         if self.health <= 0:
             self.lives -= 1
-            self
+            self.ammo = 30
             self.rect.x, self.rect.y = player.spawn[0], player.spawn[1]
             self.health = 100
 
         global gameOver
-
         if self.lives == 0 or len(enemies) <= 0:
             gameOver = True
+            background_music.stop()
+            self.sounds[random.randrange(0, 2)].play()
 
     def movePlayer(self, keys, solids):
-        dir = [0, 0]
 
         # Manage player movement
         if keys[pg.K_a]:
@@ -232,6 +244,7 @@ class Player(pg.sprite.Sprite):
         bulletCollided = pg.sprite.spritecollideany(self, enemyBullets)
         if bulletCollided:
             self.health -= bulletCollided.dmg
+            self.hurtSound.play()
             bulletCollided.kill()
 
     def shoot(self):
@@ -370,7 +383,6 @@ def load_level(path):
 
 # "Scroll" the game to follow the player.
 def scroll():
-    global SCROLL_AMOUNT
     SCROLL_AMOUNT = [-1*int((player.rect.x-DISPLAY_SIZE[0]/2+player.rect.width/2)/4), -1*int((player.rect.y-DISPLAY_SIZE[1]/2+player.rect.height/2)/6)]
 
     player.rect = player.rect.move(SCROLL_AMOUNT)
