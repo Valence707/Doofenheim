@@ -167,6 +167,7 @@ class Player(pg.sprite.Sprite):
         self.jumpVel = -12
         self.inAir = True
         self.acc = 1.5
+        self.dir = [0, 0]
 
         self.coinsCollected = 0
         self.enemiesKilled = 0
@@ -207,20 +208,21 @@ class Player(pg.sprite.Sprite):
             self.sounds[random.randrange(0, 2)].play()
 
     def movePlayer(self, keys, solids):
+        self.dir = [0, 0]
 
         # Manage player movement
         if keys[pg.K_a]:
-            dir[0] = -1
+            self.dir[0] = -1
         elif self.vel[0] < 0:
-            dir[0] = 1
+            self.dir[0] = 1
 
         if keys[pg.K_s]:
-            dir[1] = 1
+            self.dir[1] = 1
 
         if keys[pg.K_d]:
-            dir[0] = 1
+            self.dir[0] = 1
         elif self.vel[0] > 0:
-            dir[0] = -1
+            self.dir[0] = -1
 
         if keys[pg.K_SPACE]:
             if not self.inAir:
@@ -230,7 +232,7 @@ class Player(pg.sprite.Sprite):
         if self.vel[1] < 12:
             self.vel[1]+=GRAVITY
 
-        newVel = [round(self.vel[0]+self.acc*dir[0], 2), round(self.vel[1]+self.acc*dir[1], 2)]
+        newVel = [round(self.vel[0]+self.acc*self.dir[0], 2), round(self.vel[1]+self.acc*self.dir[1], 2)]
         self.vel = [newVel[0] if abs(newVel[0]) <= self.maxVel else self.vel[0], newVel[1] if abs(newVel[1]) <= self.maxVel else self.vel[1]]
 
         if abs(self.vel[0]):
