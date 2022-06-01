@@ -32,6 +32,8 @@ To-Do:
         > Simplify code
         > Modularize code and split into files
 
+    > Add Godmode
+
     > DEADLINE: June 10th
 
 Log:

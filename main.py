@@ -110,16 +110,17 @@ class Bullet(pg.sprite.Sprite):
             self.maxVel = 10
             enemyBullets.add(self)
 
+        self.compPos = origin
         self.rect.x, self.rect.y = origin
         delta = pg.math.Vector2(dest[0]*(DISPLAY_SIZE[0]/WIN_SIZE[0]), dest[1]*(DISPLAY_SIZE[1]/WIN_SIZE[1])) - origin
         direction = delta.normalize()
         self.vel = direction*self.maxVel
-
         self.duration = 3
         self.initTime = pg.time.get_ticks()
 
     def update(self):
-        self.rect = self.rect.move(self.vel)
+        self.compPos = [round(self.compPos[0]+self.vel[0], 2), round(self.compPos[1]+self.vel[1], 2)]
+        self.rect.x, self.rect.y = self.compPos
         if (pg.time.get_ticks()-self.initTime) / 1000 > self.duration or pg.sprite.spritecollideany(self, solids):
             self.kill()
 
@@ -155,10 +156,12 @@ class Player(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.compPos = pos
         self.rect.x, self.rect.y = self.compPos[0], self.compPos[1]
+        self.hurtSound = pg.mixer.Sound('./sounds/hurt.ogg')
+        self.hurtSound.stop()
         self.spawn = [0, 0]
 
         self.vel = [0, 0]
-        self.maxVel = 6
+        self.maxVel = 8
         self.jumpVel = -12
         self.inAir = True
         self.acc = 1.5
@@ -171,11 +174,27 @@ class Player(pg.sprite.Sprite):
         self.health = 100
         self.lives = 3
         self.maxHealth = 100
-        self.hurtSound = pg.mixer.Sound('./sounds/hurt.ogg')
-        self.sounds = [pg.mixer.Sound('./sounds/bruh.ogg'), pg.mixer.Sound('./sounds/oof.ogg')]
-        for sound in self.sounds:
-            sound.stop()
-        self.hurtSound.stop()
+        self.inventory = [
+            '', '', '',
+            '', '', '',
+            '', '', '',
+        ]
+        self.accessories = [
+            '', '', ''
+        ]
+        self.vanity = [
+            '', '', ''
+        ]
+        self.armor = [
+            '', '', ''
+        ]
+
+        self.settingsSize = [DISPLAY_SIZE[0]-100, DISPLAY_SIZE[1]-100]
+        self.settingsContainer = pg.Surface(self.settingsSize)
+        self.settingsBorder = pg.Surface((self.settingsSize[0]+4, self.settingsSize[1]+4))
+        self.settingsMode = False
+        self.settingsCooldown = 0
+        pg.Surface.fill(self.settingsBorder, (0, 0, 0))
 
     def update(self, keys):
         player.movePlayer(keys, solids)
@@ -187,6 +206,13 @@ class Player(pg.sprite.Sprite):
         if keys[pg.K_q]:
             global gameRun
             gameRun = False
+
+        if keys[pg.K_ESCAPE] and not self.settingsCooldown:
+            self.settingsMode = True if not self.settingsMode else False
+            self.settingsCooldown = 20
+
+        if self.settingsCooldown:
+            self.settingsCooldown -= 1
 
         if keys[pg.K_k] and debugMode:
             self.health -= 10
@@ -202,10 +228,11 @@ class Player(pg.sprite.Sprite):
             self.rect.x, self.rect.y = player.spawn[0], player.spawn[1]
             self.health = 100
 
+        # End the game
         global gameOver
         if self.lives == 0 or len(enemies) <= 0:
             gameOver = True
-            self.sounds[random.randrange(0, 2)].play()
+            unload_current_level()
 
     def movePlayer(self, keys, solids):
         self.dir = [0, 0]
@@ -251,12 +278,37 @@ class Player(pg.sprite.Sprite):
 
     def shoot(self):
         if self.ammo and not self.hasShot:
-            self.hasShot = True
             bullets.add(Bullet(player.rect.center, pg.mouse.get_pos(), 'player'))
+            self.hasShot = True
             self.ammo -= 1
+
+    def hotbar(self):
+        print("HOTBAR")
+
+    def player_menu(self, keys):
+        pg.Surface.fill(self.settingsContainer, (255, 255, 255))
+        textLines = [
+            myFonts["default"].render(F"Test", True, (0, 0, 0))
+        ]
+
+        for line in enumerate(textLines):
+            self.settingsContainer.blit(line[1], (5, 5+line[0]*15))
+
+        display.blit(self.settingsBorder, (48, 48))
+        display.blit(self.settingsContainer, (50, 50))
 
     def draw(self):
         display.blit(self.image, (self.rect.x, self.rect.y))
+
+# Player Hotbar
+hotbarSize = [300, 50]
+hotbarContainer = pg.Surface(hotbarSize)
+hotbarBorder = pg.Surface((hotbarSize[0]+4, hotbarSize[1]+4))
+def hotbar(events):
+    pg.Surface.fill(hotbarContainer, (255, 255, 255))
+
+    display.blit(hotbarBorder, (2, 2))
+    hotbarBorder.blit(hotbarContainer, (2, 2))
 
 class Enemy(pg.sprite.Sprite):
     def __init__(self, pos):
@@ -384,6 +436,11 @@ def load_level(path):
             x+=1
         y+=1
 
+def unload_current_level():
+    solids.empty()
+    enemies.empty()
+    coins.empty()
+
 # "Scroll" the game to follow the player.
 def scroll():
     SCROLL_AMOUNT = [-1*int((player.rect.x-DISPLAY_SIZE[0]/2+player.rect.width/2)/4), -1*int((player.rect.y-DISPLAY_SIZE[1]/2+player.rect.height/2)/6)]
@@ -398,7 +455,7 @@ def scroll():
 
     if len(bullets):
         for bullet in bullets:
-            bullet.rect = bullet.rect.move(SCROLL_AMOUNT)
+            bullet.compPos = [bullet.compPos[0]+SCROLL_AMOUNT[0], bullet.compPos[1]+SCROLL_AMOUNT[1]]
 
     for cloud in clouds:
         cloud.rect = cloud.rect.move(SCROLL_AMOUNT[0]/cloud.scrollIntensity, 0)
@@ -437,36 +494,6 @@ def stats():
     display.blit(statsBorder, (618, 3))
     display.blit(statsContainer, (620, 5))
     healthBar(player, 75, 10, 680, 42)
-
-# Player settings
-settingsSize = [DISPLAY_SIZE[0]-100, DISPLAY_SIZE[1]-100]
-settingsContainer = pg.Surface(settingsSize)
-settingsBorder = pg.Surface((settingsSize[0]+4, settingsSize[1]+4))
-settingsMode = False
-settingsCooldown = 0
-pg.Surface.fill(settingsBorder, (0, 0, 0))
-def settingsMenu(keys):
-    global settingsMode
-    global settingsCooldown
-
-    if keys[pg.K_ESCAPE] and not settingsCooldown:
-        settingsMode = True if not settingsMode else False
-        settingsCooldown = 20
-
-    if settingsCooldown:
-        settingsCooldown -= 1
-
-    if settingsMode:
-        pg.Surface.fill(settingsContainer, (255, 255, 255))
-        textLines = [
-            myFonts["default"].render(F"Test", True, (0, 0, 0))
-        ]
-
-        for line in enumerate(textLines):
-            settingsContainer.blit(line[1], (5, 5+line[0]*15))
-
-        display.blit(settingsBorder, (48, 48))
-        display.blit(settingsContainer, (50, 50))
 
 def healthBar(sprite, width, height, x, y):
     healthRemaining = pg.Surface((width*(sprite.health/sprite.maxHealth) if sprite.health > 0 else 0, height))
@@ -519,16 +546,6 @@ def startScreen(keys):
         gameRun = True
         game()
 
-# Player Hotbar
-hotbarSize = [300, 50]
-hotbarContainer = pg.Surface(hotbarSize)
-hotbarBorder = pg.Surface((hotbarSize[0]+4, hotbarSize[1]+4))
-def hotbar(events):
-    pg.Surface.fill(hotbarContainer, (255, 255, 255))
-
-    display.blit(hotbarBorder, (2, 2))
-    hotbarBorder.blit(hotbarContainer, (2, 2))
-
 player = Player()
 
 # Sprite groups
@@ -545,13 +562,13 @@ display = pg.Surface(DISPLAY_SIZE)
 for i in range(10):
     clouds.add(Cloud())
 
-enemies.add(Enemy([200, 200]), Enemy([200, 200]), Enemy([200, 200]), Enemy([200, 200]), Enemy([200, 200]))
+enemies.add(Enemy([-2000, 1000]))
 
 gameRun = True
 
 def game():
     global gameRun
-    load_level("world")
+    load_level("world2")
     while gameRun:
         display.fill((175, 175, 255))
 
@@ -586,12 +603,13 @@ def game():
 
         scroll()
 
-        if not settingsMode:
+        if not player.settingsMode:
             stats()
             hotbar(pg.event.get)
 
         debugMenu(keys)
-        settingsMenu(keys)
+        if player.settingsMode:
+            player.player_menu(keys)
 
         if gameOver:
             gameRun = False
