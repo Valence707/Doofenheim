@@ -17,9 +17,6 @@ CLOUD_IMAGES = [
 pg_icon = pg.image.load('./images/icon.png')
 pg.display.set_icon(pg_icon)
 pg.init()
-
-background_music = pg.mixer.Sound('./sounds/background_music.ogg')
-background_music.play()
 pg.mixer.init()
 
 clock = pg.time.Clock()
@@ -105,27 +102,25 @@ class Bullet(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.maxVel = 15
         self.dmg = 10
+        if type == 'player':
+            self.dmg = 10
+            playerBullets.add(self)
+        elif type == 'enemy':
+            self.dmg = 5
+            self.maxVel = 10
+            enemyBullets.add(self)
 
         self.rect.x, self.rect.y = origin
         delta = pg.math.Vector2(dest[0]*(DISPLAY_SIZE[0]/WIN_SIZE[0]), dest[1]*(DISPLAY_SIZE[1]/WIN_SIZE[1])) - origin
         direction = delta.normalize()
         self.vel = direction*self.maxVel
 
-        self.sound = pg.mixer.Sound('./sounds/pew.ogg')
-        self.sound.play()
-
         self.duration = 3
         self.initTime = pg.time.get_ticks()
-
-        if type == 'player':
-            playerBullets.add(self)
-        elif type == 'enemy':
-            enemyBullets.add(self)
 
     def update(self):
         self.rect = self.rect.move(self.vel)
         if (pg.time.get_ticks()-self.initTime) / 1000 > self.duration or pg.sprite.spritecollideany(self, solids):
-            self.sound.stop()
             self.kill()
 
         # Add collision detection
@@ -172,6 +167,7 @@ class Player(pg.sprite.Sprite):
         self.coinsCollected = 0
         self.enemiesKilled = 0
         self.ammo = 30
+        self.hasShot = False
         self.health = 100
         self.lives = 3
         self.maxHealth = 100
@@ -192,8 +188,13 @@ class Player(pg.sprite.Sprite):
             global gameRun
             gameRun = False
 
-        if keys[pg.K_k]:
-            self.health = 0
+        if keys[pg.K_k] and debugMode:
+            self.health -= 10
+
+        if pg.mouse.get_pressed()[0]:
+            self.shoot()
+        else:
+            self.hasShot = False
 
         if self.health <= 0:
             self.lives -= 1
@@ -204,7 +205,6 @@ class Player(pg.sprite.Sprite):
         global gameOver
         if self.lives == 0 or len(enemies) <= 0:
             gameOver = True
-            background_music.stop()
             self.sounds[random.randrange(0, 2)].play()
 
     def movePlayer(self, keys, solids):
@@ -250,7 +250,8 @@ class Player(pg.sprite.Sprite):
             bulletCollided.kill()
 
     def shoot(self):
-        if self.ammo:
+        if self.ammo and not self.hasShot:
+            self.hasShot = True
             bullets.add(Bullet(player.rect.center, pg.mouse.get_pos(), 'player'))
             self.ammo -= 1
 
@@ -274,7 +275,7 @@ class Enemy(pg.sprite.Sprite):
         self.acc = 1
         self.health = 30
         self.maxHealth = 30
-        self.shotDelay = random.randrange(1, 4)
+        self.shotDelay = random.randrange(3, 7)
         self.lastShot = pg.time.get_ticks()
 
     def update(self):
@@ -437,7 +438,6 @@ def stats():
     display.blit(statsContainer, (620, 5))
     healthBar(player, 75, 10, 680, 42)
 
-
 # Player settings
 settingsSize = [DISPLAY_SIZE[0]-100, DISPLAY_SIZE[1]-100]
 settingsContainer = pg.Surface(settingsSize)
@@ -478,6 +478,7 @@ def healthBar(sprite, width, height, x, y):
     display.blit(healthTotal, (x, y))
     display.blit(healthRemaining, (x, y))
 
+# End Screen
 endSize = [DISPLAY_SIZE[0]-50, DISPLAY_SIZE[1]-50]
 endContainer = pg.Surface(endSize)
 endBorder = pg.Surface((endSize[0]+4, endSize[1]+4))
@@ -491,7 +492,42 @@ def endScreen(keys):
         endContainer.blit(line, (int(endSize[0]/2-line.get_size()[0]/2), 15))
     
     display.blit(endBorder, (23, 23))
-    display.blit(endContainer, (25, 25))
+    endBorder.blit(endContainer, (2, 2))
+
+# Start Screen
+startSize = [DISPLAY_SIZE[0]-50, DISPLAY_SIZE[1]-50]
+startContainer = pg.Surface(startSize)
+startBorder = pg.Surface((startSize[0]+4, startSize[1]+4))
+def startScreen(keys):
+    pg.Surface.fill(startContainer, (255, 255, 255))
+    textLines = [
+        myFonts["title"].render(F"Doofenheim's Pantless Adventure", True, (0, 0, 0)),
+        myFonts["title"].render(F"", True, (0, 0, 0)),
+        myFonts["default"].render(F"Press 'Space' to start!", True, (0, 0, 0)),
+    ]
+
+    for line in enumerate(textLines):
+        startContainer.blit(line[1], (int(startSize[0]/2-line[1].get_size()[0]/2), line[0]*22+10))
+    
+    display.blit(startBorder, (23, 23))
+    startBorder.blit(startContainer, (2, 2))
+
+    if keys[pg.K_SPACE]:
+        global inStartScreen
+        inStartScreen = False
+        global gameRun
+        gameRun = True
+        game()
+
+# Player Hotbar
+hotbarSize = [300, 50]
+hotbarContainer = pg.Surface(hotbarSize)
+hotbarBorder = pg.Surface((hotbarSize[0]+4, hotbarSize[1]+4))
+def hotbar(events):
+    pg.Surface.fill(hotbarContainer, (255, 255, 255))
+
+    display.blit(hotbarBorder, (2, 2))
+    hotbarBorder.blit(hotbarContainer, (2, 2))
 
 player = Player()
 
@@ -504,7 +540,6 @@ playerBullets = pg.sprite.Group()
 enemyBullets = pg.sprite.Group()
 coins = pg.sprite.Group()
 
-run = True
 display = pg.Surface(DISPLAY_SIZE)
 
 for i in range(10):
@@ -512,17 +547,7 @@ for i in range(10):
 
 enemies.add(Enemy([200, 200]), Enemy([200, 200]), Enemy([200, 200]), Enemy([200, 200]), Enemy([200, 200]))
 
-def start_screen():
-    run = True
-    while run:
-        win.fill((255, 255, 255))
-
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                run = False
-
 gameRun = True
-inStartscreen = False
 
 def game():
     global gameRun
@@ -535,8 +560,8 @@ def game():
             if event.type == pg.QUIT:
                 gameRun = False
 
-            if event.type == pg.MOUSEBUTTONDOWN:
-                player.shoot()
+            if event.type == pg.MOUSEWHEEL:
+                print(event.x, event.y)
 
         keys = pg.key.get_pressed()
 
@@ -561,7 +586,9 @@ def game():
 
         scroll()
 
-        stats()
+        if not settingsMode:
+            stats()
+            hotbar(pg.event.get)
 
         debugMenu(keys)
         settingsMenu(keys)
@@ -570,6 +597,24 @@ def game():
             gameRun = False
             end_screen()
             break
+
+        win.blit(pg.transform.scale(display, WIN_SIZE), (0, 0))
+        pg.display.flip()
+        clock.tick(FPS)
+
+inStartScreen = True
+
+def start_screen():
+    global inStartScreen
+    while inStartScreen:
+        display.fill((175, 175, 255))
+        keys = pg.key.get_pressed()
+
+        startScreen(keys)
+
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                inStartScreen = False
 
         win.blit(pg.transform.scale(display, WIN_SIZE), (0, 0))
         pg.display.flip()
@@ -595,6 +640,6 @@ def end_screen():
         pg.display.flip()
         clock.tick(FPS)
 
-game()
+start_screen()
     
 pg.quit()

@@ -1,39 +1,36 @@
 To-Do:
-    > Add enemy tiers
-    > Fix enemy shooting
+    > Fix enemy shooting (accurate shooting, won't shoot unless player is in line of sight, move faster if player is in line of sight)
     > Add randomized enemy drops (powerups)
+    > Add autoaim
 
-    > Add autoaim feature
-    > Make background
-        > Moving mountains
-
-    > Add powerups
+    > Add items:
         > Jetpack
         > Higher Jump
         > Triple Jump
         > Increased defense
         > Health regen
 
-    > Add audio
+    > Add more enemies
+    > Add a final boss with a final boss room
 
-    > Make start menu
     > Make settings menu
-        > Add shop to buy guns, heals, and other consumables
-
-    > Add "Game Over" Screen
-    > Add ability to buy blocks and other stuff
-
-    > Add melee weapon
-    > Add lives
+        > Add shop to buy items
+        > Pause game while in settings
 
     > Make player inventory / hotbar for selecting items / guns
     > Make better terrain generation system (Try Tiled)
     > Beautify
         > Collectibles hovering, fly up when collected
+        > Refine, simplify UI
         > Animated player + enemies
+        > Add better background
+        > Add more blocks
+        > Add good sound effects / music
 
     > Optimize (Make faster)
         > Only render what is visible (i.e. out of screen bounds)
+        > Simplify code
+        > Modularize code and split into files
 
     > DEADLINE: June 10th
 
@@ -73,3 +70,8 @@ Log:
     > Improved collision detection
     > Added healthbars
     > Made spawn system
+
+5-31-2022:
+    > Added audio system
+    > Fixed shooting
+    > Added start screen
