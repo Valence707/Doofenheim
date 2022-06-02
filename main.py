@@ -28,6 +28,20 @@ myFonts = {
     "title": pg.font.SysFont(None, 36)
     }
 
+class Mouse(pg.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pg.Surface((1, 1))
+        self.rect = self.image.get_rect()
+        self.winPos = [0, 0]
+        self.pos = pg.math.Vector2(0, 0)
+
+    def update(self):
+        self.winPos = pg.mouse.get_pos()
+        self.pos.x, self.pos.y = int(self.winPos[0]*(DISPLAY_SIZE[0]/WIN_SIZE[0])), int(self.winPos[1]*(DISPLAY_SIZE[1]/WIN_SIZE[1]))
+        self.rect.x, self.rect.y = self.pos
+        print(self.rect.x, self.rect.y)
+
 class Tile(pg.sprite.Sprite):
     """The world terrain objects"""
     def __init__(self, tileType, x, y):
@@ -66,7 +80,6 @@ class Tile(pg.sprite.Sprite):
                 coins.add(Coin(self.rect.x, self.rect.y-25, "blue"))
             elif randCoin == 100:
                 coins.add(Coin(self.rect.x, self.rect.y-25, 'black'))
-
 
 class Cloud(pg.sprite.Sprite):
     """Moving clouds"""
@@ -161,10 +174,10 @@ class Player(pg.sprite.Sprite):
         self.spawn = [0, 0]
 
         self.vel = [0, 0]
-        self.maxVel = 8
+        self.maxVel = 6
         self.jumpVel = -12
         self.inAir = True
-        self.acc = 1.5
+        self.acc = 0.75
         self.dir = [0, 0]
 
         self.coinsCollected = 0
@@ -174,6 +187,7 @@ class Player(pg.sprite.Sprite):
         self.health = 100
         self.lives = 3
         self.maxHealth = 100
+        self.hand = 0
         self.inventory = [
             '', '', '',
             '', '', '',
@@ -189,13 +203,6 @@ class Player(pg.sprite.Sprite):
             '', '', ''
         ]
 
-        self.settingsSize = [DISPLAY_SIZE[0]-100, DISPLAY_SIZE[1]-100]
-        self.settingsContainer = pg.Surface(self.settingsSize)
-        self.settingsBorder = pg.Surface((self.settingsSize[0]+4, self.settingsSize[1]+4))
-        self.settingsMode = False
-        self.settingsCooldown = 0
-        pg.Surface.fill(self.settingsBorder, (0, 0, 0))
-
     def update(self, keys):
         player.movePlayer(keys, solids)
         collectedCoin = pg.sprite.spritecollideany(self, coins)
@@ -206,13 +213,6 @@ class Player(pg.sprite.Sprite):
         if keys[pg.K_q]:
             global gameRun
             gameRun = False
-
-        if keys[pg.K_ESCAPE] and not self.settingsCooldown:
-            self.settingsMode = True if not self.settingsMode else False
-            self.settingsCooldown = 20
-
-        if self.settingsCooldown:
-            self.settingsCooldown -= 1
 
         if keys[pg.K_k] and debugMode:
             self.health -= 10
@@ -282,33 +282,12 @@ class Player(pg.sprite.Sprite):
             self.hasShot = True
             self.ammo -= 1
 
-    def hotbar(self):
-        print("HOTBAR")
-
-    def player_menu(self, keys):
-        pg.Surface.fill(self.settingsContainer, (255, 255, 255))
-        textLines = [
-            myFonts["default"].render(F"Test", True, (0, 0, 0))
-        ]
-
-        for line in enumerate(textLines):
-            self.settingsContainer.blit(line[1], (5, 5+line[0]*15))
-
-        display.blit(self.settingsBorder, (48, 48))
-        display.blit(self.settingsContainer, (50, 50))
-
+    def change_hand(self, event=None, keys=None, pos=0):
+        newHand = self.hand-event.y if (event.type == pg.MOUSEWHEEL and abs(event.y)) else 0 if keys[pg.K_1] else 1 if keys[pg.K_2] else 2 if keys[pg.K_3] else pos
+        self.hand = 2 if newHand < 0 else 0 if newHand > 2 else newHand
+        
     def draw(self):
         display.blit(self.image, (self.rect.x, self.rect.y))
-
-# Player Hotbar
-hotbarSize = [300, 50]
-hotbarContainer = pg.Surface(hotbarSize)
-hotbarBorder = pg.Surface((hotbarSize[0]+4, hotbarSize[1]+4))
-def hotbar(events):
-    pg.Surface.fill(hotbarContainer, (255, 255, 255))
-
-    display.blit(hotbarBorder, (2, 2))
-    hotbarBorder.blit(hotbarContainer, (2, 2))
 
 class Enemy(pg.sprite.Sprite):
     def __init__(self, pos):
@@ -347,8 +326,6 @@ class Enemy(pg.sprite.Sprite):
             self.lastShot = pg.time.get_ticks()
             bullets.add(Bullet(self.rect.center, player.rect.center, 'enemy'))
 
-        healthBar(self, self.rect.width, 5, self.rect.x, self.rect.y-10)
-
         detectPlatformFall(self)
         newVel = [self.vel[0]+self.acc*self.dir[0], self.vel[1]+self.acc*self.dir[1]]
         self.vel = [newVel[0] if abs(newVel[0]) <= self.maxVel else self.vel[0], newVel[1] if abs(newVel[1]) <= self.maxVel else self.vel[1]]
@@ -362,6 +339,10 @@ class Enemy(pg.sprite.Sprite):
             self.kill()
             player.enemiesKilled += 1
             player.ammo += random.randrange(1, 7)
+
+    def draw(self):
+        healthBar(self, self.rect.width, 5, self.rect.x, self.rect.y-10)
+        display.blit(self.image, (self.rect.x, self.rect.y))
 
 # Debug Menu
 # Displays debug info
@@ -384,6 +365,112 @@ def debugMenu(keys):
 
     if debugMode:
         display.blit(myFonts["default"].render(F"MOUSE POS: {pg.mouse.get_pos()[0]}, {pg.mouse.get_pos()[1]}\nPLAYER POS: {player.rect.x}, {player.rect.y}", True, (0, 0, 0)), (15, 15))
+
+inMenu = False
+menuCooldown = 0
+
+inventorySlotSize = [45, 45]
+inventorySlot = pg.Surface(inventorySlotSize)
+pg.Surface.fill(inventorySlot, (190, 190, 190))
+
+# Player Inventory
+inventorySize = [155, 105]
+inventoryContainer = pg.Surface(inventorySize)
+inventoryBorder = pg.Surface((inventorySize[0]+4, inventorySize[1]+4))
+inventoryBorder.set_alpha(225)
+inventoryContainer.set_alpha(225)
+
+pg.Surface.fill(inventoryBorder, (0, 0, 0))
+def player_inventory(keys):
+    pg.Surface.fill(inventoryContainer, (255, 255, 255))
+    textLines = [
+        myFonts["default"].render(F"Test", True, (0, 0, 0))
+    ]
+
+    for line in enumerate(textLines):
+        inventoryContainer.blit(line[1], (5, 5+line[0]*15))
+
+    for i in range(2):
+        for j in range(3):
+            inventoryContainer.blit(inventorySlot, (j*(inventorySlotSize[0]+5)+5, i*(inventorySlotSize[0]+5)+5))
+
+    inventoryBorder.blit(inventoryContainer, (2, 2))
+    display.blit(inventoryBorder, (2, 63))
+
+# Player Hotbar
+hotbarSize = [155, 55]
+hotbarContainer = pg.Surface(hotbarSize)
+hotbarBorder = pg.Surface((hotbarSize[0]+4, hotbarSize[1]+4))
+hotbarContainer.set_alpha(225)
+hotbarBorder.set_alpha(225)
+
+handBorder = pg.Surface((inventorySlotSize[0]+4, inventorySlotSize[1]+4))
+
+def hotbar(events):
+    pg.Surface.fill(hotbarContainer, (255, 255, 255))
+
+    hotbarContainer.blit(handBorder, (player.hand*(inventorySlotSize[0]+5)+3, 3))
+
+    for i in range(3):
+        hotbarContainer.blit(inventorySlot, (i*(inventorySlotSize[0]+5)+5, 5))
+
+    display.blit(hotbarBorder, (2, 2))
+    hotbarBorder.blit(hotbarContainer, (2, 2))
+
+# Player equipables
+equipablesSize = [200, 300]
+equipablesContainer = pg.Surface(equipablesSize)
+equipablesBorder = pg.Surface((equipablesSize[0]+4, equipablesSize[1]+4))
+equipablesContainer.set_alpha(225)
+equipablesBorder.set_alpha(225)
+pg.Surface.fill(equipablesBorder, (0, 0, 0))
+def equipables_menu():
+    pg.Surface.fill(equipablesContainer, (255, 255, 255))
+    display.blit(equipablesBorder, (DISPLAY_SIZE[0]-equipablesSize[0]-6, DISPLAY_SIZE[1]-equipablesSize[1]-6))
+    equipablesBorder.blit(equipablesContainer, (2, 2))
+
+# Player shop
+shopSize = [400, 200]
+shopContainer = pg.Surface(shopSize)
+shopBorder = pg.Surface((shopSize[0]+4, shopSize[1]+4))
+shopBorder.set_alpha(225)
+shopContainer.set_alpha(225)
+def shop():
+    pg.Surface.fill(shopContainer, (255, 255, 255))
+    display.blit(shopBorder, (2, DISPLAY_SIZE[1]-shopSize[1]-6))
+    shopBorder.blit(shopContainer, (2, 2))
+
+# Player Stats
+statsSize = [175, 95]
+statsContainer = pg.Surface(statsSize)
+statsBorder = pg.Surface((statsSize[0]+4, statsSize[1]+4))
+statsBorder.set_alpha(225)
+statsContainer.set_alpha(225)
+
+pg.Surface.fill(statsBorder, (0, 0, 0))
+redHeart = pg.image.load('./images/red_heart.png').convert()
+blackHeart = pg.image.load('./images/black_heart.png').convert()
+redHeart.set_colorkey((0, 255, 0))
+blackHeart.set_colorkey((0, 255, 0))
+def stats():
+    pg.Surface.fill(statsContainer, (255, 255, 255))
+    textLines = [
+        myFonts["default"].render(F"Doofenheim's Stats", True, (0, 0, 0)),
+        myFonts["default"].render(F"Money: ${player.coinsCollected}", True, (0, 0, 0)),
+        myFonts["default"].render(F"Health:", True, (0, 0, 0)),
+        myFonts["default"].render(F"Ammo: {player.ammo}", True, (0, 0, 0)),
+        myFonts["default"].render(F"Enemies: {len(enemies)}", True, (0, 0, 0))
+    ]
+
+    for line in enumerate(textLines):
+        statsContainer.blit(line[1], (5, 5+line[0]*15))
+
+    for i in range(0, 3):
+        statsContainer.blit(redHeart if i < player.lives else blackHeart, (12*i+137, 37))
+
+    display.blit(statsBorder, (618, 3))
+    statsBorder.blit(statsContainer, (2, 2))
+    healthBar(player, 75, 10, 680, 42)
 
 def solidXCollision(sprite):
     collidedPlatform = pg.sprite.spritecollideany(sprite, solids)
@@ -466,35 +553,6 @@ def scroll():
     for coin in coins:
         coin.rect = coin.rect.move(SCROLL_AMOUNT)
 
-# Player Stats
-statsSize = [175, 95]
-statsContainer = pg.Surface(statsSize)
-statsBorder = pg.Surface((statsSize[0]+4, statsSize[1]+4))
-pg.Surface.fill(statsBorder, (0, 0, 0))
-redHeart = pg.image.load('./images/red_heart.png').convert()
-blackHeart = pg.image.load('./images/black_heart.png').convert()
-redHeart.set_colorkey((0, 255, 0))
-blackHeart.set_colorkey((0, 255, 0))
-def stats():
-    pg.Surface.fill(statsContainer, (255, 255, 255))
-    textLines = [
-        myFonts["default"].render(F"Doofenheim's Stats", True, (0, 0, 0)),
-        myFonts["default"].render(F"Money: ${player.coinsCollected}", True, (0, 0, 0)),
-        myFonts["default"].render(F"Health:", True, (0, 0, 0)),
-        myFonts["default"].render(F"Ammo: {player.ammo}", True, (0, 0, 0)),
-        myFonts["default"].render(F"Enemies: {len(enemies)}", True, (0, 0, 0))
-    ]
-
-    for line in enumerate(textLines):
-        statsContainer.blit(line[1], (5, 5+line[0]*15))
-
-    for i in range(0, 3):
-        statsContainer.blit(redHeart if i < player.lives else blackHeart, (12*i+137, 37))
-
-    display.blit(statsBorder, (618, 3))
-    display.blit(statsContainer, (620, 5))
-    healthBar(player, 75, 10, 680, 42)
-
 def healthBar(sprite, width, height, x, y):
     healthRemaining = pg.Surface((width*(sprite.health/sprite.maxHealth) if sprite.health > 0 else 0, height))
     healthTotal = pg.Surface((width, height))
@@ -546,8 +604,6 @@ def startScreen(keys):
         gameRun = True
         game()
 
-player = Player()
-
 # Sprite groups
 solids = pg.sprite.Group()
 clouds = pg.sprite.Group()
@@ -566,8 +622,14 @@ enemies.add(Enemy([-2000, 1000]))
 
 gameRun = True
 
+player = Player()
+
+userMouse = Mouse()
+
 def game():
     global gameRun
+    global inMenu
+    global menuCooldown
     load_level("world2")
     while gameRun:
         display.fill((175, 175, 255))
@@ -578,38 +640,51 @@ def game():
                 gameRun = False
 
             if event.type == pg.MOUSEWHEEL:
-                print(event.x, event.y)
+                player.change_hand(event)
+                print(player.hand)
 
         keys = pg.key.get_pressed()
 
-        # Draw background
-        for cloud in clouds:
-            cloud.animate()
+        # Update the game
+        if not inMenu:
+            for cloud in clouds:
+                cloud.animate()
 
+            player.update(keys)
+            for enemy in enemies:
+                enemy.update()
+
+            for bullet in bullets:
+                bullet.update()
+
+        # Draw everything to display
         clouds.draw(display)
         solids.draw(display)
-
-        player.update(keys)
         for enemy in enemies:
-            enemy.update()
-
-        for bullet in bullets:
-            bullet.update()
-        enemies.draw(display)
+            enemy.draw()
         bullets.draw(display)
         coins.draw(display)
-
         player.draw()
 
         scroll()
 
-        if not player.settingsMode:
-            stats()
-            hotbar(pg.event.get)
+        if keys[pg.K_e] and not menuCooldown:
+            inMenu = True if not inMenu else False
+            menuCooldown = 20
 
+        if menuCooldown:
+            menuCooldown -= 1
+
+        stats()
+        hotbar(pg.event.get)
+        
         debugMenu(keys)
-        if player.settingsMode:
-            player.player_menu(keys)
+        if inMenu:
+            player_inventory(keys)
+            equipables_menu()
+            shop()
+
+        userMouse.update()
 
         if gameOver:
             gameRun = False

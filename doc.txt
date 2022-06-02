@@ -1,5 +1,5 @@
 To-Do:
-    > Fix enemy shooting (accurate shooting, won't shoot unless player is in line of sight, move faster if player is in line of sight)
+    > Fix enemy shooting (accurate shooting, won't shoot unless player is in line of sight, move only if player is in line of sight)
     > Add randomized enemy drops (powerups)
     > Add autoaim
 
@@ -13,24 +13,29 @@ To-Do:
     > Add more enemies
     > Add a final boss with a final boss room
 
-    > Make settings menu
-        > Add shop to buy items
-        > Pause game while in settings
+    > Make player inventory
+    > Make player creation system
+    > Make shop for items
+    > Make player upgrade menu
 
-    > Make player inventory / hotbar for selecting items / guns
+    > Add ability to break and place blocks
+        > Add "block breaking" overlay sprite
+
     > Make better terrain generation system (Try Tiled)
     > Beautify
-        > Collectibles hovering, fly up when collected
-        > Refine, simplify UI
+        > Realistic (on ground) collectibles
         > Animated player + enemies
         > Add better background
         > Add more blocks
+        > Add text to HP bar
         > Add good sound effects / music
+        > Make coins sit on ground instead of float
 
     > Optimize (Make faster)
         > Only render what is visible (i.e. out of screen bounds)
         > Simplify code
-        > Modularize code and split into files
+        > Modularize code and split into separate files
+        > Research more optimizations
 
     > Add Godmode
 
@@ -77,3 +82,13 @@ Log:
     > Added audio system
     > Fixed shooting
     > Added start screen
+
+6-1-2022:
+    > Made shooting pixel-precise
+    > Added player menu system
+        > Slots for inventory (connected to hotbar), equipables, and shop
+
+    > Added invisible "mouse" sprite that will be used in detections later
+    > Added inventory slots
+    > Added hotbar slots
+    > Added scrollable 3-slot hotbar
