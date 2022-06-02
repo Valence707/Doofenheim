@@ -40,7 +40,6 @@ class Mouse(pg.sprite.Sprite):
         self.winPos = pg.mouse.get_pos()
         self.pos.x, self.pos.y = int(self.winPos[0]*(DISPLAY_SIZE[0]/WIN_SIZE[0])), int(self.winPos[1]*(DISPLAY_SIZE[1]/WIN_SIZE[1]))
         self.rect.x, self.rect.y = self.pos
-        print(self.rect.x, self.rect.y)
 
 class Tile(pg.sprite.Sprite):
     """The world terrain objects"""
@@ -506,7 +505,7 @@ def detectPlatformFall(sprite):
 # Load level data from text file
 def load_level(path):
     world = []
-    with open(path+".txt", "r") as worldObj:
+    with open(F"levels/{path}.txt", "r") as worldObj:
         data = worldObj.read()
     data = data.split("\n")
     for row in data:
@@ -630,7 +629,7 @@ def game():
     global gameRun
     global inMenu
     global menuCooldown
-    load_level("world2")
+    load_level("test_level")
     while gameRun:
         display.fill((175, 175, 255))
 

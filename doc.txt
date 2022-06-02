@@ -35,6 +35,9 @@ To-Do:
         > Only render what is visible (i.e. out of screen bounds)
         > Simplify code
         > Modularize code and split into separate files
+            > Put global variables in separate file, import that file into all other files that require it
+            
+        > Add small delays to computationally-intensive tasks using game ticks
         > Research more optimizations
 
     > Add Godmode
