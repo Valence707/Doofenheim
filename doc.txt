@@ -2,6 +2,7 @@ To-Do:
     > Fix enemy shooting (accurate shooting, won't shoot unless player is in line of sight, move only if player is in line of sight)
     > Add randomized enemy drops (powerups)
     > Add autoaim
+    > Fix bullet collision detection
 
     > Add items:
         > Jetpack
@@ -26,6 +27,7 @@ To-Do:
         > Realistic (on ground) collectibles
         > Animated player + enemies
         > Add better background
+            > Draw distant + slow clouds first
         > Add more blocks
         > Add text to HP bar
         > Add good sound effects / music
@@ -39,6 +41,8 @@ To-Do:
             
         > Add small delays to computationally-intensive tasks using game ticks
         > Research more optimizations
+
+    > Create story + progression
 
     > Add Godmode
 
@@ -95,3 +99,10 @@ Log:
     > Added inventory slots
     > Added hotbar slots
     > Added scrollable 3-slot hotbar
+
+6-2-2022:
+    > Added basic item system
+    > Moved shooting mechanic to disparate items
+        > Added pistol
+        > Added shotgun
+        > Made hotbar scrollable and functional

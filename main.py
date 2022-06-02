@@ -35,6 +35,7 @@ class Mouse(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.winPos = [0, 0]
         self.pos = pg.math.Vector2(0, 0)
+        self.selected = None
 
     def update(self):
         self.winPos = pg.mouse.get_pos()
@@ -105,8 +106,28 @@ class Cloud(pg.sprite.Sprite):
         self.compPos = [self.compPos[0]+self.vel[0], self.compPos[1]+self.vel[1]]
         self.rect.x, self.rect.y = math.floor(self.compPos[0]), math.floor(self.compPos[1])
 
+class Item(pg.sprite.Sprite):
+    def __init__(self, name, ammo=0, image=None, action=None, cooldown=None, amount=1, autoUse=False):
+        super().__init__()
+        self.image = pg.Surface((30, 30))
+        self.action = action
+        self.name = name
+        self.cooldown = cooldown
+        self.ammo = ammo
+        self.autoUse = autoUse
+        self.lastUsed = pg.time.get_ticks()
+        self.hasBeenUsed = False
+        self.image = pg.image.load(F"./images/{image}")
+        self.image = pg.transform.scale(self.image, inventorySlotSize)
+        self.rect = self.image.get_rect()
+
+    def use(self):
+        if round((pg.time.get_ticks()-self.lastUsed)/1000, 2) >= self.cooldown:
+            self.action(self)
+            self.lastUsed = pg.time.get_ticks()
+
 class Bullet(pg.sprite.Sprite):
-    def __init__(self, origin, dest, type):
+    def __init__(self, origin, dest, type, gun):
         super().__init__()
         self.image = pg.image.load("./images/bullet.png")
         self.image.convert()
@@ -115,17 +136,24 @@ class Bullet(pg.sprite.Sprite):
         self.maxVel = 15
         self.dmg = 10
         if type == 'player':
+            self.maxVel = 20
             self.dmg = 10
             playerBullets.add(self)
         elif type == 'enemy':
             self.dmg = 5
-            self.maxVel = 10
+            self.maxVel = 7
             enemyBullets.add(self)
 
         self.compPos = origin
         self.rect.x, self.rect.y = origin
         delta = pg.math.Vector2(dest[0]*(DISPLAY_SIZE[0]/WIN_SIZE[0]), dest[1]*(DISPLAY_SIZE[1]/WIN_SIZE[1])) - origin
         direction = delta.normalize()
+
+        if gun == 'shotgun':
+            direction.x, direction.y = direction[0]+(random.uniform(-0.15, 0.15)), direction[1]+(random.uniform(-0.15, 0.15))
+        elif gun == 'pistol':
+            direction = direction
+
         self.vel = direction*self.maxVel
         self.duration = 3
         self.initTime = pg.time.get_ticks()
@@ -182,13 +210,14 @@ class Player(pg.sprite.Sprite):
         self.coinsCollected = 0
         self.enemiesKilled = 0
         self.ammo = 30
-        self.hasShot = False
         self.health = 100
         self.lives = 3
         self.maxHealth = 100
         self.hand = 0
+        self.hotbar = [
+            Item('pistol', 30,'pistol.png', pistol_shoot, 0.25), Item('shotgun', 5, 'shotgun.png', shotgun_shoot, 1), Item('knife', 0, 'knife.png')
+        ]
         self.inventory = [
-            '', '', '',
             '', '', '',
             '', '', '',
         ]
@@ -217,7 +246,8 @@ class Player(pg.sprite.Sprite):
             self.health -= 10
 
         if pg.mouse.get_pressed()[0]:
-            self.shoot()
+            if self.hotbar[self.hand]:
+                self.hotbar[self.hand].use()
         else:
             self.hasShot = False
 
@@ -275,15 +305,10 @@ class Player(pg.sprite.Sprite):
             self.hurtSound.play()
             bulletCollided.kill()
 
-    def shoot(self):
-        if self.ammo and not self.hasShot:
-            bullets.add(Bullet(player.rect.center, pg.mouse.get_pos(), 'player'))
-            self.hasShot = True
-            self.ammo -= 1
-
     def change_hand(self, event=None, keys=None, pos=0):
         newHand = self.hand-event.y if (event.type == pg.MOUSEWHEEL and abs(event.y)) else 0 if keys[pg.K_1] else 1 if keys[pg.K_2] else 2 if keys[pg.K_3] else pos
         self.hand = 2 if newHand < 0 else 0 if newHand > 2 else newHand
+        print(self.hotbar[self.hand].name)
         
     def draw(self):
         display.blit(self.image, (self.rect.x, self.rect.y))
@@ -323,7 +348,7 @@ class Enemy(pg.sprite.Sprite):
 
         if (pg.time.get_ticks() - self.lastShot) / 1000 >= self.shotDelay:
             self.lastShot = pg.time.get_ticks()
-            bullets.add(Bullet(self.rect.center, player.rect.center, 'enemy'))
+            bullets.add(Bullet(self.rect.center, player.rect.center, 'enemy', 'pistol'))
 
         detectPlatformFall(self)
         newVel = [self.vel[0]+self.acc*self.dir[0], self.vel[1]+self.acc*self.dir[1]]
@@ -337,7 +362,7 @@ class Enemy(pg.sprite.Sprite):
         if self.health <= 0:
             self.kill()
             player.enemiesKilled += 1
-            player.ammo += random.randrange(1, 7)
+            player.hotbar[player.hand].ammo += random.randrange(1, 7)
 
     def draw(self):
         healthBar(self, self.rect.width, 5, self.rect.x, self.rect.y-10)
@@ -369,8 +394,10 @@ inMenu = False
 menuCooldown = 0
 
 inventorySlotSize = [45, 45]
-inventorySlot = pg.Surface(inventorySlotSize)
-pg.Surface.fill(inventorySlot, (190, 190, 190))
+inventorySlots = [pg.Surface(inventorySlotSize) for i in range(6)]
+
+for slot in inventorySlots:
+    pg.Surface.fill(slot, (190, 190, 190))
 
 # Player Inventory
 inventorySize = [155, 105]
@@ -380,41 +407,39 @@ inventoryBorder.set_alpha(225)
 inventoryContainer.set_alpha(225)
 
 pg.Surface.fill(inventoryBorder, (0, 0, 0))
-def player_inventory(keys):
-    pg.Surface.fill(inventoryContainer, (255, 255, 255))
-    textLines = [
-        myFonts["default"].render(F"Test", True, (0, 0, 0))
-    ]
 
-    for line in enumerate(textLines):
-        inventoryContainer.blit(line[1], (5, 5+line[0]*15))
+def player_inventory():
+    pg.Surface.fill(inventoryContainer, (255, 255, 255))\
 
-    for i in range(2):
-        for j in range(3):
-            inventoryContainer.blit(inventorySlot, (j*(inventorySlotSize[0]+5)+5, i*(inventorySlotSize[0]+5)+5))
+    for slot in enumerate(inventorySlots):
+        inventoryContainer.blit(slot[1], ((slot[0]%3)*(inventorySlotSize[0]+5)+5, (slot[0]//3)*(inventorySlotSize[0]+5)+5))
 
     inventoryBorder.blit(inventoryContainer, (2, 2))
     display.blit(inventoryBorder, (2, 63))
 
 # Player Hotbar
 hotbarSize = [155, 55]
+hotbarSlots = [pg.Surface(inventorySlotSize) for i in range(3)]
+for slot in hotbarSlots:
+    pg.Surface.fill(slot, (190, 190, 190))
+
 hotbarContainer = pg.Surface(hotbarSize)
 hotbarBorder = pg.Surface((hotbarSize[0]+4, hotbarSize[1]+4))
 hotbarContainer.set_alpha(225)
 hotbarBorder.set_alpha(225)
 
+pg.Surface.fill(hotbarBorder, (0, 0, 0))
 handBorder = pg.Surface((inventorySlotSize[0]+4, inventorySlotSize[1]+4))
 
-def hotbar(events):
+def hotbar():
     pg.Surface.fill(hotbarContainer, (255, 255, 255))
-
     hotbarContainer.blit(handBorder, (player.hand*(inventorySlotSize[0]+5)+3, 3))
-
-    for i in range(3):
-        hotbarContainer.blit(inventorySlot, (i*(inventorySlotSize[0]+5)+5, 5))
-
-    display.blit(hotbarBorder, (2, 2))
+    for slot in enumerate(hotbarSlots):
+        hotbarContainer.blit(slot[1], (slot[0]*(inventorySlotSize[0]+5)+5, 5))
+        if player.hotbar[slot[0]]:
+            slot[1].blit(player.hotbar[slot[0]].image, (0, 0))
     hotbarBorder.blit(hotbarContainer, (2, 2))
+    display.blit(hotbarBorder, (2, 2))
 
 # Player equipables
 equipablesSize = [200, 300]
@@ -457,7 +482,7 @@ def stats():
         myFonts["default"].render(F"Doofenheim's Stats", True, (0, 0, 0)),
         myFonts["default"].render(F"Money: ${player.coinsCollected}", True, (0, 0, 0)),
         myFonts["default"].render(F"Health:", True, (0, 0, 0)),
-        myFonts["default"].render(F"Ammo: {player.ammo}", True, (0, 0, 0)),
+        myFonts["default"].render(F"Ammo: {player.hotbar[player.hand].ammo}", True, (0, 0, 0)) if player.hotbar[player.hand].ammo != -1 else myFonts['default'].render("", True, (0, 0, 0)),
         myFonts["default"].render(F"Enemies: {len(enemies)}", True, (0, 0, 0))
     ]
 
@@ -621,15 +646,27 @@ enemies.add(Enemy([-2000, 1000]))
 
 gameRun = True
 
-player = Player()
+def pistol_shoot(gun):
+    if gun.ammo:
+        bullets.add(Bullet(player.rect.center, pg.mouse.get_pos(), 'player', 'pistol'))
+        gun.hasBeenUsed = True
+        gun.ammo -= 1
 
+def shotgun_shoot(gun):
+    if gun.ammo:
+        for i in range(5):
+            bullets.add(Bullet(player.rect.center, pg.mouse.get_pos(), 'player', 'shotgun'))
+            gun.hasBeenUsed = True
+        gun.ammo -= 1
+
+player = Player()
 userMouse = Mouse()
 
 def game():
     global gameRun
     global inMenu
     global menuCooldown
-    load_level("test_level")
+    load_level("level_1")
     while gameRun:
         display.fill((175, 175, 255))
 
@@ -640,7 +677,6 @@ def game():
 
             if event.type == pg.MOUSEWHEEL:
                 player.change_hand(event)
-                print(player.hand)
 
         keys = pg.key.get_pressed()
 
@@ -665,8 +701,10 @@ def game():
         coins.draw(display)
         player.draw()
 
-        scroll()
+        if not inMenu:
+            scroll()
 
+        
         if keys[pg.K_e] and not menuCooldown:
             inMenu = True if not inMenu else False
             menuCooldown = 20
@@ -675,11 +713,11 @@ def game():
             menuCooldown -= 1
 
         stats()
-        hotbar(pg.event.get)
+        hotbar()
         
         debugMenu(keys)
         if inMenu:
-            player_inventory(keys)
+            player_inventory()
             equipables_menu()
             shop()
 
