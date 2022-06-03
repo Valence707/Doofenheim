@@ -3,6 +3,7 @@ To-Do:
     > Add randomized enemy drops (powerups)
     > Add autoaim
     > Fix bullet collision detection
+        > Move bullet in increments (decided by smallest sprite) for each position update to make high bullet speeds possible and increase collision detection accuracy
 
     > Add items:
         > Jetpack
