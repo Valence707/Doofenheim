@@ -3,30 +3,26 @@ import random
 import pygame as pg
 from pygame.locals import *
 
-WIN_SIZE = [1600, 900]
-DISPLAY_SIZE = [800, 450]
-FPS = 60
-TILE_SIZE = [10, 10]
-GRAVITY = 0.5
-CLOUD_IMAGES = [
-    pg.image.load('./images/cloud_1.png'),
-    pg.image.load('./images/cloud_2.png'),
-    pg.image.load('./images/cloud_3.png')
-]
+DATA = {
+    "WIN_SIZE": [1600, 900],
+    "DISPLAY_SIZE": [800, 450],
+    "FPS": 60,
+    "GRAVITY": 0.5,
+    "GAME_OVER": False,
+}
 
-pg_icon = pg.image.load('./images/icon.png')
-pg.display.set_icon(pg_icon)
 pg.init()
-pg.mixer.init()
+
+win = pg.display.set_mode(DATA["WIN_SIZE"])
+pg.display.set_icon(pg.image.load('./images/icon.png'))
+pg.display.set_caption("Doofenheim's Pantless Adventure")
 
 clock = pg.time.Clock()
-win = pg.display.set_mode(WIN_SIZE)
-pg.display.set_caption("Doofenheim's Pantless Adventure")
 
 myFonts = {
     "default": pg.font.SysFont(None, 22),
     "title": pg.font.SysFont(None, 36)
-    }
+}
 
 class Mouse(pg.sprite.Sprite):
     def __init__(self):
@@ -39,7 +35,7 @@ class Mouse(pg.sprite.Sprite):
 
     def update(self):
         self.winPos = pg.mouse.get_pos()
-        self.pos.x, self.pos.y = int(self.winPos[0]*(DISPLAY_SIZE[0]/WIN_SIZE[0])), int(self.winPos[1]*(DISPLAY_SIZE[1]/WIN_SIZE[1]))
+        self.pos.x, self.pos.y = int(self.winPos[0]*(DATA["DISPLAY_SIZE"][0]/DATA["WIN_SIZE"][0])), int(self.winPos[1]*(DATA["DISPLAY_SIZE"][1]/DATA["WIN_SIZE"][1]))
         self.rect.x, self.rect.y = self.pos
 
 class Tile(pg.sprite.Sprite):
@@ -63,8 +59,6 @@ class Tile(pg.sprite.Sprite):
 
         # Cause of ugly tiles. Need to resize all tile images to be 20x20px
         self.image = pg.transform.scale(self.image, self.SIZE)
-        self.image.convert()
-        self.image.set_colorkey((0, 255, 0))
             
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x*self.SIZE[0], y*self.SIZE[1]
@@ -85,23 +79,21 @@ class Cloud(pg.sprite.Sprite):
     """Moving clouds"""
     def __init__(self, pos=[0, 0]):
         super().__init__()
-        self.image = CLOUD_IMAGES[random.randrange(0, len(CLOUD_IMAGES))]
+        self.image = pg.image.load(F"./images/cloud_{random.randrange(1, 4)}.png")
         randomSizeFactor = random.randrange(1, 6)
         self.image = pg.transform.scale(self.image, (self.image.get_width()*randomSizeFactor, self.image.get_height()*randomSizeFactor))
-        self.image.convert()
-        self.image.set_colorkey((0, 255, 0))
-
-        self.compPos = [pos[0] if pos[0] else int(random.randrange(0, DISPLAY_SIZE[0]-150)), pos[1] if pos[1] else int(random.randrange(0, DISPLAY_SIZE[1]-150))]
         self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = self.compPos[0], self.compPos[1]
-        self.vel = [round(random.random()+0.3, 2), 0]
+
+        self.compPos = [pos[0] if pos[0] else int(random.randrange(0, DATA["DISPLAY_SIZE"][0]-150)), pos[1] if pos[1] else int(random.randrange(0, DATA["DISPLAY_SIZE"][1]-150))]
+        self.rect.x, self.rect.y = self.compPos
+        self.vel = [round(random.uniform(0.1, 0.5), 2), 0]
         self.scrollIntensity = 100/self.vel[0]
 
     def animate(self):
-        if self.rect.left > DISPLAY_SIZE[0] and self.vel[0] > 0:
-            self.compPos = [-1*self.rect.width, int(random.randrange(0, DISPLAY_SIZE[1]-150))]
-        elif self.rect.right < 0 and self.vel[0] < 0:
-            self.compPos = [DISPLAY_SIZE[0], int(random.randrange(0, DISPLAY_SIZE[1]-150))]
+        self.compPos = [
+            -1*self.rect.width if self.rect.left > DATA["DISPLAY_SIZE"][0] and self.vel[0] > 0 else DATA["DISPLAY_SIZE"][0] if self.rect.right < 0 and self.vel[0] < 0 else self.compPos[0]+self.vel[0],
+            int(random.randrange(0, DATA["DISPLAY_SIZE"][1]-150)) if self.rect.left > DATA["DISPLAY_SIZE"][0] and self.vel[0] > 0 else int(random.randrange(0, DATA["DISPLAY_SIZE"][1]-150)) if self.rect.right < 0 and self.vel[0] < 0 else self.compPos[1]+self.vel[1]
+        ]
         
         self.compPos = [self.compPos[0]+self.vel[0], self.compPos[1]+self.vel[1]]
         self.rect.x, self.rect.y = math.floor(self.compPos[0]), math.floor(self.compPos[1])
@@ -120,6 +112,7 @@ class Item(pg.sprite.Sprite):
         self.image = pg.image.load(F"./images/{image}")
         self.image = pg.transform.scale(self.image, inventorySlotSize)
         self.rect = self.image.get_rect()
+        self.kill()
 
     def use(self):
         if round((pg.time.get_ticks()-self.lastUsed)/1000, 2) >= self.cooldown:
@@ -130,13 +123,10 @@ class Bullet(pg.sprite.Sprite):
     def __init__(self, origin, dest, type, gun):
         super().__init__()
         self.image = pg.image.load("./images/bullet.png")
-        self.image.convert()
-        self.image.set_colorkey((0, 255, 0))
         self.rect = self.image.get_rect()
         self.maxVel = 15
         self.dmg = 10
         if type == 'player':
-            self.maxVel = 20
             self.dmg = 10
             playerBullets.add(self)
         elif type == 'enemy':
@@ -146,7 +136,7 @@ class Bullet(pg.sprite.Sprite):
 
         self.compPos = origin
         self.rect.x, self.rect.y = origin
-        delta = pg.math.Vector2(dest[0]*(DISPLAY_SIZE[0]/WIN_SIZE[0]), dest[1]*(DISPLAY_SIZE[1]/WIN_SIZE[1])) - origin
+        delta = pg.math.Vector2(dest[0]*(DATA["DISPLAY_SIZE"][0]/DATA["WIN_SIZE"][0]), dest[1]*(DATA["DISPLAY_SIZE"][1]/DATA["WIN_SIZE"][1])) - origin
         direction = delta.normalize()
 
         if gun == 'shotgun':
@@ -181,23 +171,18 @@ class Coin(pg.sprite.Sprite):
         elif type == 'black':
             self.image = pg.image.load('./images/black_coin.png')
             self.value = 50
-        self.image.convert()
-        self.image.set_colorkey((0, 255, 0))
 
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y
 
 class Player(pg.sprite.Sprite):
     """Sprite controlled by player, used to interact with environment"""
-    def __init__(self, pos=[round((DISPLAY_SIZE[0]/2)-10, 2), round((DISPLAY_SIZE[1]/2)-10)], size=[25, 50]):
+    def __init__(self, pos=[round((DATA["DISPLAY_SIZE"][0]/2)-10, 2), round((DATA["DISPLAY_SIZE"][1]/2)-10)], size=[25, 50]):
         super().__init__()
-        self.image = pg.image.load("./images/player.png").convert()
-        self.image.set_colorkey((0, 255, 0))
+        self.image = pg.image.load("./images/player.png")
         self.rect = self.image.get_rect()
         self.compPos = pos
         self.rect.x, self.rect.y = self.compPos[0], self.compPos[1]
-        self.hurtSound = pg.mixer.Sound('./sounds/hurt.ogg')
-        self.hurtSound.stop()
         self.spawn = [0, 0]
 
         self.vel = [0, 0]
@@ -286,7 +271,7 @@ class Player(pg.sprite.Sprite):
                 self.inAir = True
 
         if self.vel[1] < 12:
-            self.vel[1]+=GRAVITY
+            self.vel[1]+=DATA["GRAVITY"]
 
         newVel = [round(self.vel[0]+self.acc*self.dir[0], 2), round(self.vel[1]+self.acc*self.dir[1], 2)]
         self.vel = [newVel[0] if abs(newVel[0]) <= self.maxVel else self.vel[0], newVel[1] if abs(newVel[1]) <= self.maxVel else self.vel[1]]
@@ -302,13 +287,14 @@ class Player(pg.sprite.Sprite):
         bulletCollided = pg.sprite.spritecollideany(self, enemyBullets)
         if bulletCollided:
             self.health -= bulletCollided.dmg
-            self.hurtSound.play()
             bulletCollided.kill()
 
+        if keys[pg.K_1] or keys[pg.K_2] or keys[pg.K_3]:
+            self.change_hand(keys=keys)
+
     def change_hand(self, event=None, keys=None, pos=0):
-        newHand = self.hand-event.y if (event.type == pg.MOUSEWHEEL and abs(event.y)) else 0 if keys[pg.K_1] else 1 if keys[pg.K_2] else 2 if keys[pg.K_3] else pos
+        newHand = self.hand-event.y if (event != None and event.type == pg.MOUSEWHEEL and abs(event.y)) else 0 if keys[pg.K_1] else 1 if keys[pg.K_2] else 2 if keys[pg.K_3] else pos
         self.hand = 2 if newHand < 0 else 0 if newHand > 2 else newHand
-        print(self.hotbar[self.hand].name)
         
     def draw(self):
         display.blit(self.image, (self.rect.x, self.rect.y))
@@ -316,8 +302,7 @@ class Player(pg.sprite.Sprite):
 class Enemy(pg.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image = pg.image.load("./images/enemy.png").convert()
-        self.image.set_colorkey((0, 255, 0))
+        self.image = pg.image.load("./images/enemy.png")
         self.rect = self.image.get_rect()
         self.compPos = pos
         self.rect.x, self.rect.y = pos
@@ -335,7 +320,7 @@ class Enemy(pg.sprite.Sprite):
 
     def update(self):
         if self.vel[1] <= 12:
-            self.vel[1]+=GRAVITY
+            self.vel[1]+=DATA["GRAVITY"]
 
         if abs(self.vel[0]):
             self.rect.x = math.floor(self.vel[0]+self.rect.x)
@@ -450,7 +435,7 @@ equipablesBorder.set_alpha(225)
 pg.Surface.fill(equipablesBorder, (0, 0, 0))
 def equipables_menu():
     pg.Surface.fill(equipablesContainer, (255, 255, 255))
-    display.blit(equipablesBorder, (DISPLAY_SIZE[0]-equipablesSize[0]-6, DISPLAY_SIZE[1]-equipablesSize[1]-6))
+    display.blit(equipablesBorder, (DATA["DISPLAY_SIZE"][0]-equipablesSize[0]-6, DATA["DISPLAY_SIZE"][1]-equipablesSize[1]-6))
     equipablesBorder.blit(equipablesContainer, (2, 2))
 
 # Player shop
@@ -461,7 +446,7 @@ shopBorder.set_alpha(225)
 shopContainer.set_alpha(225)
 def shop():
     pg.Surface.fill(shopContainer, (255, 255, 255))
-    display.blit(shopBorder, (2, DISPLAY_SIZE[1]-shopSize[1]-6))
+    display.blit(shopBorder, (2, DATA["DISPLAY_SIZE"][1]-shopSize[1]-6))
     shopBorder.blit(shopContainer, (2, 2))
 
 # Player Stats
@@ -472,10 +457,8 @@ statsBorder.set_alpha(225)
 statsContainer.set_alpha(225)
 
 pg.Surface.fill(statsBorder, (0, 0, 0))
-redHeart = pg.image.load('./images/red_heart.png').convert()
-blackHeart = pg.image.load('./images/black_heart.png').convert()
-redHeart.set_colorkey((0, 255, 0))
-blackHeart.set_colorkey((0, 255, 0))
+redHeart = pg.image.load('./images/red_heart.png')
+blackHeart = pg.image.load('./images/black_heart.png')
 def stats():
     pg.Surface.fill(statsContainer, (255, 255, 255))
     textLines = [
@@ -554,7 +537,7 @@ def unload_current_level():
 
 # "Scroll" the game to follow the player.
 def scroll():
-    SCROLL_AMOUNT = [-1*int((player.rect.x-DISPLAY_SIZE[0]/2+player.rect.width/2)/4), -1*int((player.rect.y-DISPLAY_SIZE[1]/2+player.rect.height/2)/6)]
+    SCROLL_AMOUNT = [-1*int((player.rect.x-DATA["DISPLAY_SIZE"][0]/2+player.rect.width/2)/4), -1*int((player.rect.y-DATA["DISPLAY_SIZE"][1]/2+player.rect.height/2)/6)]
 
     player.rect = player.rect.move(SCROLL_AMOUNT)
     
@@ -588,7 +571,7 @@ def healthBar(sprite, width, height, x, y):
     display.blit(healthRemaining, (x, y))
 
 # End Screen
-endSize = [DISPLAY_SIZE[0]-50, DISPLAY_SIZE[1]-50]
+endSize = [DATA["DISPLAY_SIZE"][0]-50, DATA["DISPLAY_SIZE"][1]-50]
 endContainer = pg.Surface(endSize)
 endBorder = pg.Surface((endSize[0]+4, endSize[1]+4))
 def endScreen(keys):
@@ -604,7 +587,7 @@ def endScreen(keys):
     endBorder.blit(endContainer, (2, 2))
 
 # Start Screen
-startSize = [DISPLAY_SIZE[0]-50, DISPLAY_SIZE[1]-50]
+startSize = [DATA["DISPLAY_SIZE"][0]-50, DATA["DISPLAY_SIZE"][1]-50]
 startContainer = pg.Surface(startSize)
 startBorder = pg.Surface((startSize[0]+4, startSize[1]+4))
 def startScreen(keys):
@@ -637,7 +620,7 @@ playerBullets = pg.sprite.Group()
 enemyBullets = pg.sprite.Group()
 coins = pg.sprite.Group()
 
-display = pg.Surface(DISPLAY_SIZE)
+display = pg.Surface(DATA["DISPLAY_SIZE"])
 
 for i in range(10):
     clouds.add(Cloud())
@@ -668,7 +651,7 @@ def game():
     global menuCooldown
     load_level("level_1")
     while gameRun:
-        display.fill((175, 175, 255))
+        display.fill((150, 150, 255))
 
         # Manage game events
         for event in pg.event.get():
@@ -728,9 +711,9 @@ def game():
             end_screen()
             break
 
-        win.blit(pg.transform.scale(display, WIN_SIZE), (0, 0))
+        win.blit(pg.transform.scale(display, DATA["WIN_SIZE"]), (0, 0))
         pg.display.flip()
-        clock.tick(FPS)
+        clock.tick(DATA["FPS"])
 
 inStartScreen = True
 
@@ -746,9 +729,9 @@ def start_screen():
             if event.type == pg.QUIT:
                 inStartScreen = False
 
-        win.blit(pg.transform.scale(display, WIN_SIZE), (0, 0))
+        win.blit(pg.transform.scale(display, DATA["WIN_SIZE"]), (0, 0))
         pg.display.flip()
-        clock.tick(FPS)
+        clock.tick(DATA["FPS"])
 
 gameOver = False
 def end_screen():
@@ -766,9 +749,9 @@ def end_screen():
             if event.type == pg.QUIT:
                 gameOver = False
 
-        win.blit(pg.transform.scale(display, WIN_SIZE), (0, 0))
+        win.blit(pg.transform.scale(display, DATA["WIN_SIZE"]), (0, 0))
         pg.display.flip()
-        clock.tick(FPS)
+        clock.tick(DATA["FPS"])
 
 start_screen()
     
