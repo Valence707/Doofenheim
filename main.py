@@ -1,5 +1,3 @@
-import math
-import random
 import pygame
 from pygame.locals import *
 from data import DATA
@@ -8,6 +6,7 @@ from functions import *
 from enemy import Enemy
 from player import Player
 from animations import *
+from tile import Tile
 
 pygame.init()
 
@@ -38,6 +37,27 @@ DATA["enemies"].add(Enemy([-2000, 1000]))
 DATA["gameRun"] = True
 DATA["player"] = Player()
 DATA["userMouse"] = Mouse()
+
+# Load level data from text file
+def load_level(path):
+    world = []
+    with open(F"levels/{path}.txt", "r") as worldObj:
+        data = worldObj.read()
+    data = data.split("\n")
+    for row in data:
+        world.append(row.split(","))
+
+    y = 0
+    for row in world:
+        x = 0
+        for item in row:
+            if item == 'E':
+                DATA["enemies"].add(Enemy((x*20, y*20-50)))
+            elif item != '0':
+                DATA["solids"].add(Tile(item, x, y))
+            x+=1
+        y+=1
+    print(DATA["enemies"])
 
 def game():
     load_level("level_1")

@@ -1,7 +1,5 @@
 import pygame
 from data import DATA
-from enemy import Enemy
-from tile import Tile
 
 def solidXCollision(sprite):
     collidedPlatform = pygame.sprite.spritecollideany(sprite, DATA["solids"])
@@ -149,26 +147,6 @@ statsBorder = pygame.Surface((DATA["statsSize"][0]+4, DATA["statsSize"][1]+4))
 statsBorder.set_alpha(225)
 statsContainer.set_alpha(225)
 
-# Load level data from text file
-def load_level(path):
-    world = []
-    with open(F"levels/{path}.txt", "r") as worldObj:
-        data = worldObj.read()
-    data = data.split("\n")
-    for row in data:
-        world.append(row.split(","))
-
-    y = 0
-    for row in world:
-        x = 0
-        for item in row:
-            if item == 'E':
-                DATA["enemies"].add(Enemy((x*20, y*20-50)))
-            elif item != '0':
-                DATA["solids"].add(Tile(item, x, y))
-            x+=1
-        y+=1
-
 pygame.Surface.fill(statsBorder, (0, 0, 0))
 redHeart = pygame.image.load('./images/red_heart.png')
 blackHeart = pygame.image.load('./images/black_heart.png')
@@ -225,3 +203,6 @@ def startScreen(keys):
     
     DATA["DISPLAY"].blit(startBorder, (23, 23))
     startBorder.blit(startContainer, (2, 2))
+
+def test():
+    print("test")

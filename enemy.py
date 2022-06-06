@@ -3,7 +3,7 @@ import random
 import math
 from data import DATA
 from functions import *
-from bullet import Bullet
+from projectiles import Bullet
 
 def detectPlatformFall(sprite):
     sprite.rect = sprite.rect.move(-23 if sprite.dir[0] == -1 else 23, 10)

@@ -1,6 +1,6 @@
 import pygame
 from functions import *
-from bullet import Bullet
+from projectiles import Bullet
 
 class Item(pygame.sprite.Sprite):
     def __init__(self, name, ammo=0, image=None, action=None, cooldown=None, amount=1, autoUse=False):
