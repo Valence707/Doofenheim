@@ -5,7 +5,7 @@ class Cloud(pygame.sprite.Sprite):
     """Moving clouds"""
     def __init__(self, pos=[0, 0]):
         super().__init__()
-        self.image = pygame.image.load(F"./images/cloud_{random.randrange(1, 4)}.png")
+        self.image = pygame.image.load(F"./images/cloud_{random.randrange(1, 4)}.png").convert()
         randomSizeFactor = random.randrange(1, 6)
         self.image = pygame.transform.scale(self.image, (self.image.get_width()*randomSizeFactor, self.image.get_height()*randomSizeFactor))
         self.rect = self.image.get_rect()

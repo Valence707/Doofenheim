@@ -37,9 +37,6 @@ To-Do:
     > Optimize (Make faster)
         > Only render what is visible (i.e. out of screen bounds)
         > Simplify code
-        > Modularize code and split into separate files
-            > Put global variables in separate file, import that file into all other files that require it
-            
         > Add small delays to computationally-intensive tasks using game ticks
         > Research more optimizations
 
@@ -128,3 +125,7 @@ Log:
         > Added pistol
         > Added shotgun
         > Made hotbar scrollable and functional
+
+6-6-2022:
+    > Split entire project into modules
+    > Created "data" module to store all relevant game data. Helps with game state.

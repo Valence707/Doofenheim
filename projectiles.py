@@ -4,7 +4,7 @@ from data import DATA
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, origin, dest, type, gun):
         super().__init__()
-        self.image = pygame.image.load("./images/bullet.png")
+        self.image = pygame.image.load("./images/bullet.png").convert()
         self.rect = self.image.get_rect()
         self.maxVel = 15
         self.dmg = 10

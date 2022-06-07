@@ -16,7 +16,7 @@ def detectPlatformFall(sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image = pygame.image.load("./images/enemy.png")
+        self.image = pygame.image.load("./images/enemy.png").convert()
         self.rect = self.image.get_rect()
         self.compPos = pos
         self.rect.x, self.rect.y = pos

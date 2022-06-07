@@ -57,7 +57,6 @@ def load_level(path):
                 DATA["solids"].add(Tile(item, x, y))
             x+=1
         y+=1
-    print(DATA["enemies"])
 
 def game():
     load_level("level_1")
@@ -147,7 +146,7 @@ def start_screen():
 
         DATA["WINDOW"].blit(pygame.transform.scale(DATA["DISPLAY"], DATA["WIN_SIZE"]), (0, 0))
         pygame.display.flip()
-        clock.tick(DATA["FPS"])
+        clock.tick(30)
 
 def end_screen():
     while DATA["gameOver"]:
@@ -161,11 +160,11 @@ def end_screen():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                DATA["gameOver"] = False
-
+                DATA["gameOver"] = False 
+ 
         DATA["WINDOW"].blit(pygame.transform.scale(DATA["DISPLAY"], DATA["WIN_SIZE"]), (0, 0))
         pygame.display.flip()
-        clock.tick(DATA["FPS"])
+        clock.tick(40)
 
 start_screen()
 pygame.quit()

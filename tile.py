@@ -8,13 +8,13 @@ class Tile(pygame.sprite.Sprite):
         super().__init__()
         self.SIZE = [20, 20]
         if tileType == '1':
-            self.image = pygame.image.load('./images/dirt_top.png')
+            self.image = pygame.image.load('./images/dirt_top.png').convert()
         elif tileType == '2':
-            self.image = pygame.image.load('./images/dirt_side.png')
+            self.image = pygame.image.load('./images/dirt_side.png').convert()
         elif tileType == '3':
-            self.image = pygame.image.load('./images/stone.png')
+            self.image = pygame.image.load('./images/stone.png').convert()
         elif tileType == 'S':
-            self.image = pygame.image.load("./images/spawn.png")
+            self.image = pygame.image.load("./images/spawn.png").convert()
             DATA["player"].rect.x, DATA["player"].rect.y = x*self.SIZE[0], y*self.SIZE[1]-DATA["player"].rect.height-10
             DATA["player"].spawn = [x*self.SIZE[0], y*self.SIZE[1]-DATA["player"].rect.height-10]
         else:

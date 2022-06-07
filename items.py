@@ -13,7 +13,7 @@ class Item(pygame.sprite.Sprite):
         self.autoUse = autoUse
         self.lastUsed = pygame.time.get_ticks()
         self.hasBeenUsed = False
-        self.image = pygame.image.load(F"./images/{image}")
+        self.image = pygame.image.load(F"./images/{image}").convert()
         self.image = pygame.transform.scale(self.image, DATA["inventorySlotSize"])
         self.rect = self.image.get_rect()
         self.kill()
