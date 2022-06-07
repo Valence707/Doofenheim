@@ -1,6 +1,7 @@
 import pygame, random
 from data import DATA
 from modules.coin import Coin
+from modules.enemy import Enemy
 
 class Tile(pygame.sprite.Sprite):
     """The world terrain objects"""
@@ -17,6 +18,13 @@ class Tile(pygame.sprite.Sprite):
             self.image = pygame.image.load("./images/spawn.png").convert()
             DATA["player"].rect.x, DATA["player"].rect.y = x*self.SIZE[0], y*self.SIZE[1]-DATA["player"].rect.height-10
             DATA["player"].spawn = [x*self.SIZE[0], y*self.SIZE[1]-DATA["player"].rect.height-10]
+        elif tileType == 'E':
+            DATA["enemies"].add(Enemy((x*20, y*20-50)))
+            return
+        elif tileType == "#":
+            self.image = pygame.Surface(self.SIZE)
+            pygame.Surface.fill(self.image, (0, 0, 0))
+            self.onScreen = 1
         else:
             print("INVALID TILE TYPE: ", type(tileType), tileType)
             pygame.quit()
@@ -27,6 +35,10 @@ class Tile(pygame.sprite.Sprite):
             
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x*self.SIZE[0], y*self.SIZE[1]
+        if tileType == '#':
+            DATA["testTiles"].add(self)
+        else:
+            DATA["solids"].add(self)
 
         # Randomly generate a coin above the surface
         if tileType == '1' and not pygame.sprite.spritecollideany(Coin(self.rect.x, self.rect.y-25, 'yellow'), DATA["solids"]):
@@ -39,3 +51,6 @@ class Tile(pygame.sprite.Sprite):
                 DATA["coins"].add(Coin(self.rect.x, self.rect.y-25, "blue"))
             elif randCoin == 100:
                 DATA["coins"].add(Coin(self.rect.x, self.rect.y-25, 'black'))
+
+    def testTile(self):
+        print(self.onScreen)

@@ -65,6 +65,9 @@ def scroll():
     for coin in DATA["coins"]:
         coin.rect = coin.rect.move(SCROLL_AMOUNT)
 
+    for tile in DATA["testTiles"]:
+        tile.rect = tile.rect.move(SCROLL_AMOUNT)
+
 inventorySlots = [pygame.Surface(DATA["inventorySlotSize"]) for i in range(6)]
 
 # Player Inventory

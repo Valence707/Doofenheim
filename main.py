@@ -13,6 +13,8 @@ pygame.init()
 clock = pygame.time.Clock()
 
 # Sprite groups
+DATA["testTiles"] = pygame.sprite.Group()
+
 DATA["solids"] = pygame.sprite.Group()
 DATA["clouds"] = pygame.sprite.Group()
 DATA["enemies"] = pygame.sprite.Group()
@@ -55,10 +57,8 @@ def load_level(path):
     for row in world:
         x = 0
         for item in row:
-            if item == 'E':
-                DATA["enemies"].add(Enemy((x*20, y*20-50)))
-            elif item != '0':
-                DATA["solids"].add(Tile(item, x, y))
+            if item != '0':
+                Tile(item, x, y)
             x+=1
         y+=1
 
@@ -97,24 +97,8 @@ def game():
             enemy.draw()
         DATA["bullets"].draw(DATA["DISPLAY"])
         DATA["coins"].draw(DATA["DISPLAY"])
-
-        # Draw test
-        # for cloud in DATA["clouds"]:
-        #     DATA["DISPLAY"].blit(cloud.image, (cloud.rect.x, cloud.rect.y))
-
-        # for solid in DATA["solids"]:
-        #     DATA["DISPLAY"].blit(solid.image, (solid.rect.x, solid.rect.y))
-
-        # for enemy in DATA["enemies"]:
-        #     enemy.draw()
-
-        # for bullet in DATA["bullets"]:
-        #     DATA["DISPLAY"].blit(bullet.image, (bullet.rect.x, bullet.rect.y))
-
-        # for coin in DATA["coins"]:
-        #     DATA["DISPLAY"].blit(coin.image, (coin.rect.x, coin.rect.y))
-
         DATA["player"].draw()
+        DATA["testTiles"].draw(DATA["DISPLAY"])
 
         if not DATA["inMenu"]:
             scroll()
@@ -128,6 +112,9 @@ def game():
 
         stats()
         hotbar()
+
+        for tile in DATA["testTiles"]:
+            tile.testTile()
         
         debugMenu(keys)
         if DATA["inMenu"]:
@@ -144,7 +131,7 @@ def game():
 
         DATA["WINDOW"].blit(pygame.transform.scale(DATA["DISPLAY"], DATA["WIN_SIZE"]), (0, 0))
         pygame.display.flip()
-        print(pygame.time.get_ticks()-start)
+        # print(pygame.time.get_ticks()-start)
         clock.tick(DATA["FPS"])
 
 DATA["inStartScreen"] = True

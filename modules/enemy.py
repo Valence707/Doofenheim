@@ -66,4 +66,4 @@ class Enemy(pygame.sprite.Sprite):
 
     def draw(self):
         healthBar(self, self.rect.width, 5, self.rect.x, self.rect.y-10)
-        DATA["DISPLAY"].blit(self.image, (self.rect.x, self.rect.y))
+        DATA["DISPLAY"].blit(self.image, (self.rect))

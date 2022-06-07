@@ -36,7 +36,7 @@ To-Do:
         > Make coins sit on ground instead of float
 
     > Optimize (Make faster)
-        > Only render what is visible (i.e. out of screen bounds)
+        > Use chunks to render only what is visible
         > Simplify code
         > Add small delays to computationally-intensive tasks using game ticks
         > Research more optimizations
