@@ -1,6 +1,6 @@
 import pygame, random
 from data import DATA
-from coin import Coin
+from modules.coin import Coin
 
 class Tile(pygame.sprite.Sprite):
     """The world terrain objects"""
@@ -23,6 +23,7 @@ class Tile(pygame.sprite.Sprite):
 
         # Cause of ugly tiles. Need to resize all tile images to be 20x20px
         self.image = pygame.transform.scale(self.image, self.SIZE)
+        self.image.set_colorkey((0, 255, 0))
             
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x*self.SIZE[0], y*self.SIZE[1]

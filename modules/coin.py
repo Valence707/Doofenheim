@@ -16,5 +16,6 @@ class Coin(pygame.sprite.Sprite):
             self.image = pygame.image.load('./images/black_coin.png').convert()
             self.value = 50
 
+        self.image.set_colorkey((0, 255, 0))
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y

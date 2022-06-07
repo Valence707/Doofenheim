@@ -1,6 +1,6 @@
 import pygame
-from functions import *
-from projectiles import Bullet
+from modules.functions import *
+from modules.projectiles import Bullet
 
 class Item(pygame.sprite.Sprite):
     def __init__(self, name, ammo=0, image=None, action=None, cooldown=None, amount=1, autoUse=False):
@@ -15,6 +15,7 @@ class Item(pygame.sprite.Sprite):
         self.hasBeenUsed = False
         self.image = pygame.image.load(F"./images/{image}").convert()
         self.image = pygame.transform.scale(self.image, DATA["inventorySlotSize"])
+        self.image.set_colorkey((0, 255, 0))
         self.rect = self.image.get_rect()
         self.kill()
 

@@ -2,8 +2,8 @@ import pygame
 import random
 import math
 from data import DATA
-from functions import *
-from projectiles import Bullet
+from modules.functions import *
+from modules.projectiles import Bullet
 
 def detectPlatformFall(sprite):
     sprite.rect = sprite.rect.move(-23 if sprite.dir[0] == -1 else 23, 10)
@@ -17,6 +17,7 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
         self.image = pygame.image.load("./images/enemy.png").convert()
+        self.image.set_colorkey((0, 255, 0))
         self.rect = self.image.get_rect()
         self.compPos = pos
         self.rect.x, self.rect.y = pos

@@ -6,6 +6,7 @@ class Cloud(pygame.sprite.Sprite):
     def __init__(self, pos=[0, 0]):
         super().__init__()
         self.image = pygame.image.load(F"./images/cloud_{random.randrange(1, 4)}.png").convert()
+        self.image.set_colorkey((0, 255, 0))
         randomSizeFactor = random.randrange(1, 6)
         self.image = pygame.transform.scale(self.image, (self.image.get_width()*randomSizeFactor, self.image.get_height()*randomSizeFactor))
         self.rect = self.image.get_rect()
@@ -23,3 +24,4 @@ class Cloud(pygame.sprite.Sprite):
         
         self.compPos = [self.compPos[0]+self.vel[0], self.compPos[1]+self.vel[1]]
         self.rect.x, self.rect.y = math.floor(self.compPos[0]), math.floor(self.compPos[1])
+

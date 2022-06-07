@@ -1,12 +1,12 @@
 import pygame
 from pygame.locals import *
 from data import DATA
-from mouse import Mouse
-from functions import *
-from enemy import Enemy
-from player import Player
-from animations import *
-from tile import Tile
+from modules.mouse import Mouse
+from modules.functions import *
+from modules.enemy import Enemy
+from modules.player import Player
+from modules.animations import *
+from modules.tile import Tile
 
 pygame.init()
 
@@ -32,6 +32,10 @@ pygame.display.set_caption("Doofenheim's Pantless Adventure")
 
 for i in range(9):
     DATA["clouds"].add(Cloud())
+    
+backgroundImage = pygame.image.load("./images/background.png").convert()
+backgroundImage = pygame.transform.scale(backgroundImage, (DATA["DISPLAY_SIZE"][0], 100))
+backgroundImage.set_colorkey((0, 255, 0))
 
 DATA["enemies"].add(Enemy([-2000, 1000]))
 DATA["gameRun"] = True
@@ -59,7 +63,7 @@ def load_level(path):
         y+=1
 
 def game():
-    load_level("level_1")
+    load_level("test_level")
     while DATA["gameRun"]:
         start = pygame.time.get_ticks()
         DATA["DISPLAY"].fill((150, 150, 255))
@@ -86,18 +90,34 @@ def game():
             for bullet in DATA["bullets"]:
                 bullet.update()
 
-        # Draw everything to DATA["DISPLAY"]
+        DATA["DISPLAY"].blit(backgroundImage, (0, 350))
         DATA["clouds"].draw(DATA["DISPLAY"])
         DATA["solids"].draw(DATA["DISPLAY"])
         for enemy in DATA["enemies"]:
             enemy.draw()
         DATA["bullets"].draw(DATA["DISPLAY"])
         DATA["coins"].draw(DATA["DISPLAY"])
+
+        # Draw test
+        # for cloud in DATA["clouds"]:
+        #     DATA["DISPLAY"].blit(cloud.image, (cloud.rect.x, cloud.rect.y))
+
+        # for solid in DATA["solids"]:
+        #     DATA["DISPLAY"].blit(solid.image, (solid.rect.x, solid.rect.y))
+
+        # for enemy in DATA["enemies"]:
+        #     enemy.draw()
+
+        # for bullet in DATA["bullets"]:
+        #     DATA["DISPLAY"].blit(bullet.image, (bullet.rect.x, bullet.rect.y))
+
+        # for coin in DATA["coins"]:
+        #     DATA["DISPLAY"].blit(coin.image, (coin.rect.x, coin.rect.y))
+
         DATA["player"].draw()
 
         if not DATA["inMenu"]:
             scroll()
-
         
         if keys[pygame.K_ESCAPE] and not DATA["menuCooldown"]:
             DATA["inMenu"] = True if not DATA["inMenu"] else False

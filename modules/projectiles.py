@@ -5,6 +5,7 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, origin, dest, type, gun):
         super().__init__()
         self.image = pygame.image.load("./images/bullet.png").convert()
+        self.image.set_colorkey((0, 255, 0))
         self.rect = self.image.get_rect()
         self.maxVel = 15
         self.dmg = 10

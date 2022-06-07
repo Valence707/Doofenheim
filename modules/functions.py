@@ -149,7 +149,9 @@ statsContainer.set_alpha(225)
 
 pygame.Surface.fill(statsBorder, (0, 0, 0))
 redHeart = pygame.image.load('./images/red_heart.png')
+redHeart.set_colorkey((0, 255, 0))
 blackHeart = pygame.image.load('./images/black_heart.png')
+blackHeart.set_colorkey((0, 255, 0))
 def stats():
     pygame.Surface.fill(statsContainer, (255, 255, 255))
     textLines = [

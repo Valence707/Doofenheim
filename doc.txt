@@ -30,7 +30,8 @@ To-Do:
         > Add better background
             > Draw distant + slow clouds first
         > Add more blocks
-        > Add text to HP bar
+        > Add HP text
+        > Add damage indicator
         > Add good sound effects / music
         > Make coins sit on ground instead of float
 

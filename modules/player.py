@@ -1,13 +1,14 @@
 import pygame, math
 from data import DATA
-from functions import *
-from items import *
+from modules.functions import *
+from modules.items import *
 
 class Player(pygame.sprite.Sprite):
     """Sprite controlled by DATA["player"], used to interact with environment"""
     def __init__(self, pos=[round((DATA["DISPLAY_SIZE"][0]/2)-10, 2), round((DATA["DISPLAY_SIZE"][1]/2)-10)], size=[25, 50]):
         super().__init__()
-        self.image = pygame.image.load("./images/player.png")
+        self.image = pygame.image.load("./images/player.png").convert()
+        self.image.set_colorkey((0, 255, 0))
         self.rect = self.image.get_rect()
         self.compPos = pos
         self.rect.x, self.rect.y = self.compPos[0], self.compPos[1]
