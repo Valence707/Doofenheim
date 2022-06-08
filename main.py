@@ -12,22 +12,21 @@ pygame.init()
 
 clock = pygame.time.Clock()
 
-# Sprite groups
-DATA["testTiles"] = pygame.sprite.Group()
-
-DATA["solids"] = pygame.sprite.Group()
-DATA["clouds"] = pygame.sprite.Group()
-DATA["enemies"] = pygame.sprite.Group()
-DATA["bullets"] = pygame.sprite.Group()
-DATA["playerBullets"] = pygame.sprite.Group()
-DATA["enemyBullets"] = pygame.sprite.Group()
-DATA["coins"] = pygame.sprite.Group()
 DATA["WINDOW"] = pygame.display.set_mode(DATA["WIN_SIZE"])
 DATA["DISPLAY"] = pygame.Surface(DATA["DISPLAY_SIZE"])
 DATA["FONTS"] = {
     "default": pygame.font.SysFont(None, 22),
     "title": pygame.font.SysFont(None, 36)
 }
+
+DATA["playerWalkImages"] = [
+    pygame.image.load("./images/player_idle.png").convert(),
+    pygame.image.load("./images/player_walk_1.png").convert(),
+    pygame.image.load("./images/player_walk_2.png").convert()
+]
+
+for image in enumerate(DATA["playerWalkImages"]):
+    DATA["playerWalkImages"][image[0]].set_colorkey((0, 255, 0))
 
 pygame.display.set_icon(pygame.image.load('./images/icon.png'))
 pygame.display.set_caption("Doofenheim's Pantless Adventure")
@@ -79,16 +78,15 @@ def game():
         keys = pygame.key.get_pressed()
 
         # Update the game
-        if not DATA["inMenu"]:
-            for cloud in DATA["clouds"]:
-                cloud.animate()
+        for cloud in DATA["clouds"]:
+            cloud.animate()
 
-            DATA["player"].update(keys)
-            for enemy in DATA["enemies"]:
-                enemy.update()
+        DATA["player"].update(keys)
+        for enemy in DATA["enemies"]:
+            enemy.update()
 
-            for bullet in DATA["bullets"]:
-                bullet.update()
+        for bullet in DATA["bullets"]:
+            bullet.update()
 
         DATA["DISPLAY"].blit(backgroundImage, (0, 350))
         DATA["clouds"].draw(DATA["DISPLAY"])
@@ -98,29 +96,13 @@ def game():
         DATA["bullets"].draw(DATA["DISPLAY"])
         DATA["coins"].draw(DATA["DISPLAY"])
         DATA["player"].draw()
-        DATA["testTiles"].draw(DATA["DISPLAY"])
 
-        if not DATA["inMenu"]:
-            scroll()
-        
-        if keys[pygame.K_ESCAPE] and not DATA["menuCooldown"]:
-            DATA["inMenu"] = True if not DATA["inMenu"] else False
-            DATA["menuCooldown"] = 20
-
-        if DATA["menuCooldown"]:
-            DATA["menuCooldown"] -= 1
+        scroll()
 
         stats()
         hotbar()
-
-        for tile in DATA["testTiles"]:
-            tile.testTile()
         
         debugMenu(keys)
-        if DATA["inMenu"]:
-            player_inventory()
-            equipables_menu()
-            shop()
 
         DATA["userMouse"].update()
 

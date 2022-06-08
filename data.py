@@ -1,14 +1,14 @@
+import pygame
+
 DATA = {
     "WIN_SIZE": [1600, 900],
     "DISPLAY_SIZE": [800, 450],
     "FPS": 60,
     "GRAVITY": 0.5,
-    "gameRun": False,
+    "gameRun": True,
     "gameOver": False,
     "inStartScreen": True,
     "inEndScreen": False,
-    "inMenu": False,
-    "menuCooldown": 0,
     "debugMode": False,
     "debugCooldown": 0,
     "inventorySize": [155, 105],
@@ -16,5 +16,12 @@ DATA = {
     "hotbarSize": [155, 55],
     "equipablesSize": [200, 300],
     "shopSize": [400, 200],
-    "statsSize": [175, 95]
+    "statsSize": [175, 95],
+    "solids": pygame.sprite.Group(),
+    "clouds": pygame.sprite.Group(),
+    "enemies": pygame.sprite.Group(),
+    "bullets": pygame.sprite.Group(),
+    "playerBullets": pygame.sprite.Group(),
+    "enemyBullets": pygame.sprite.Group(),
+    "coins": pygame.sprite.Group(),
 }

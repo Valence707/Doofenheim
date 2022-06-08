@@ -1,72 +1,11 @@
 To-Do:
-    > Fix enemy shooting (accurate shooting, won't shoot unless player is in line of sight, move only if player is in line of sight)
-    > Add randomized enemy drops (powerups)
-    > Add autoaim
-    > Fix bullet collision detection
-        > Move bullet in increments (decided by smallest sprite) for each position update to make high bullet speeds possible and increase collision detection accuracy
-
-    > Add items:
-        > Jetpack
-        > Higher Jump
-        > Triple Jump
-        > Increased defense
-        > Health regen
-
-    > Add more enemies
-    > Add a final boss with a final boss room
-
-    > Make player inventory
-    > Make player creation system
-    > Make shop for items
-    > Make player upgrade menu
-
-    > Add ability to break and place blocks
-        > Add "block breaking" overlay sprite
-
-    > Make better terrain generation system (Try Tiled)
-    > Beautify
-        > Realistic (on ground) collectibles
-        > Animated player + enemies
-        > Add better background
-            > Draw distant + slow clouds first
-        > Add more blocks
-        > Add HP text
-        > Add damage indicator
-        > Add good sound effects / music
-        > Make coins sit on ground instead of float
-
-    > Optimize (Make faster)
-        > Use chunks to render only what is visible
-        > Simplify code
-        > Add small delays to computationally-intensive tasks using game ticks
-        > Research more optimizations
-
-    > STORY:
-        > Doofenheim is a sentient robot that finds himself in a world deep underground without humans, only robots.
-        > A directive flashes at the beginning: "Get to the surface".
-        > Doofenheim must travel forwards through the bases and lay down checkpoints. The bases
-        are part of one continuous world, and when Doofenheim dies, he respawns at the checkpoints.
-        The checkpoints are copies of Doofenheim's body that contain everything he had at the moment of the checkpoint's creation
-        plus the memories and experiences he gains until his death.
-        > As Doofenheim traverses the world and finds new bases, he collects items that allow him to upgrade himself permanently (the checkpoints are also upgraded).
-        > Each "level" ends with a boss. Doofenheim's progression throughout the level will determine his ability to beat the boss.
-            > Each boss is unique, and Doofenheim will not know anything about the boss until he encounters it for the first time. If Doofenheim dies, he will respawn at his last checkpoint,
-            which will be automatically placed before the boss encounter if he has not already placed a checkpoint in that level before.
-
-        > Doofenheim will keep a database of the items, enemies, blocks, and other things he encounters, and will learn new crafting recipes as he gains knowledge of his surroundings.
-            > Each level will contain "hints" at the story that Doofenheim will encounter upon beating the boss. Beating a boss will initiate a cutscene in which Doofenheim will learn more of the world's past.
-            > These "stories" will be structured as infomercials. At first, they'll concern the educational stuff about society, then progressively get more ominous until, upon reaching the surface, Doofenheim learns
-            of the world's plight.
-
-        > Humanity was making great progress. Then it nearly got destroyed. Eventually, the player learns that Doofenheim was the man that almost destroyed the world, but he saw what he's done at the last moment and isolated
-        himself in the very bottom of the Earth's crust in Antarctica. He designed a robotic body and brain and a labyrinth that would teach him to be the strong man he never was. He stripped his mind of all memories and instincts
-        and created a sentient AI in which he would implant his consciousness, which turned out to be a quantum-entagled substance.
-        > Doofenheim gains his memories later on.
-        > Make it a funny game: "Don't kill people that aren't trying to kill anyone else!" Funny quotes - as if tutorial on how to be human. Also serious.
-
-    > Add Godmode
-
-    > DEADLINE: June 10th
+    > Fix character walk animation
+    > Remove all unnecessary overlays.
+    > Remove all unnecessary code (simplify for final product)
+    > Add four more levels
+    > Add some more sounds
+    > Make video on project
+    > Deadline: June 10
 
 Log:
 5-24-2022:
@@ -107,7 +46,7 @@ Log:
 
 5-31-2022:
     > Added audio system
-    > Fixed shooting
+    > Fixed shooting (made pixel-precise)
     > Added start screen
 
 6-1-2022:
@@ -130,3 +69,75 @@ Log:
 6-6-2022:
     > Split entire project into modules
     > Created "data" module to store all relevant game data. Helps with game state.
+
+6-7-2022:
+    > Implemented basic animation for player.
+    > Scrapped all future plans. Here's an archive of what they used to be:
+        > Fix enemy shooting (accurate shooting, won't shoot unless player is in line of sight, move only if player is in line of sight)
+        > Add randomized enemy drops (powerups)
+        > Add autoaim
+        > Fix bullet collision detection
+            > Move bullet in increments (decided by smallest sprite) for each position update to make high bullet speeds possible and increase collision detection accuracy
+
+        > Add items:
+            > Jetpack
+            > Higher Jump
+            > Triple Jump
+            > Increased defense
+            > Health regen
+
+        > Add more enemies
+        > Add a final boss with a final boss room
+
+        > Make player inventory
+        > Make player creation system
+        > Make shop for items
+        > Make player upgrade menu
+
+        > Add ability to break and place blocks
+            > Add "block breaking" overlay sprite
+
+        > Make better terrain generation system (Try Tiled)
+        > Beautify
+            > Realistic (on ground) collectibles
+            > Animated player + enemies
+            > Add better background
+                > Draw distant + slow clouds first
+            > Add more blocks
+            > Add HP text
+            > Add damage indicator
+            > Add good sound effects / music
+            > Make coins sit on ground instead of float
+
+        > Optimize (Make faster)
+            > Use chunks to render only what is visible
+            > Simplify code
+            > Add small delays to computationally-intensive tasks using game ticks
+            > Research more optimizations
+
+        > STORY:
+            > Doofenheim is a sentient robot that finds himself in a world deep underground without humans, only robots.
+            > A directive flashes at the beginning: "Get to the surface".
+            > Doofenheim must travel forwards through the bases and lay down checkpoints. The bases
+            are part of one continuous world, and when Doofenheim dies, he respawns at the checkpoints.
+            The checkpoints are copies of Doofenheim's body that contain everything he had at the moment of the checkpoint's creation
+            plus the memories and experiences he gains until his death.
+            > As Doofenheim traverses the world and finds new bases, he collects items that allow him to upgrade himself permanently (the checkpoints are also upgraded).
+            > Each "level" ends with a boss. Doofenheim's progression throughout the level will determine his ability to beat the boss.
+                > Each boss is unique, and Doofenheim will not know anything about the boss until he encounters it for the first time. If Doofenheim dies, he will respawn at his last checkpoint,
+                which will be automatically placed before the boss encounter if he has not already placed a checkpoint in that level before.
+
+            > Doofenheim will keep a database of the items, enemies, blocks, and other things he encounters, and will learn new crafting recipes as he gains knowledge of his surroundings.
+                > Each level will contain "hints" at the story that Doofenheim will encounter upon beating the boss. Beating a boss will initiate a cutscene in which Doofenheim will learn more of the world's past.
+                > These "stories" will be structured as infomercials. At first, they'll concern the educational stuff about society, then progressively get more ominous until, upon reaching the surface, Doofenheim learns
+                of the world's plight.
+
+            > Humanity was making great progress. Then it nearly got destroyed. Eventually, the player learns that Doofenheim was the man that almost destroyed the world, but he saw what he's done at the last moment and isolated
+            himself in the very bottom of the Earth's crust in Antarctica. He designed a robotic body and brain and a labyrinth that would teach him to be the strong man he never was. He stripped his mind of all memories and instincts
+            and created a sentient AI in which he would implant his consciousness, which turned out to be a quantum-entagled substance.
+            > Doofenheim gains his memories later on.
+            > Make it a funny game: "Don't kill people that aren't trying to kill anyone else!" Funny quotes - as if tutorial on how to be human. Also serious.
+
+        > Add Godmode
+
+        > DEADLINE: June 10th

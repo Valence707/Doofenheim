@@ -65,30 +65,6 @@ def scroll():
     for coin in DATA["coins"]:
         coin.rect = coin.rect.move(SCROLL_AMOUNT)
 
-    for tile in DATA["testTiles"]:
-        tile.rect = tile.rect.move(SCROLL_AMOUNT)
-
-inventorySlots = [pygame.Surface(DATA["inventorySlotSize"]) for i in range(6)]
-
-# Player Inventory
-inventoryContainer = pygame.Surface(DATA["inventorySize"])
-inventoryBorder = pygame.Surface((DATA["inventorySize"][0]+4, DATA["inventorySize"][1]+4))
-inventoryBorder.set_alpha(225)
-inventoryContainer.set_alpha(225)
-pygame.Surface.fill(inventoryBorder, (0, 0, 0))
-
-def player_inventory():
-    pygame.Surface.fill(inventoryContainer, (255, 255, 255))
-
-    for slot in enumerate(inventorySlots):
-        inventoryContainer.blit(slot[1], ((slot[0]%3)*(DATA["inventorySlotSize"][0]+5)+5, (slot[0]//3)*(DATA["inventorySlotSize"][0]+5)+5))
-
-    inventoryBorder.blit(inventoryContainer, (2, 2))
-    DATA["DISPLAY"].blit(inventoryBorder, (2, 63))
-
-for slot in inventorySlots:
-    pygame.Surface.fill(slot, (190, 190, 190))
-
 # Player Hotbar
 hotbarSlots = [pygame.Surface(DATA["inventorySlotSize"]) for i in range(3)]
 for slot in hotbarSlots:
@@ -123,27 +99,6 @@ def debugMenu(keys):
     if DATA["debugMode"]:
         DATA["DISPLAY"].blit(DATA["FONTS"]["default"].render("MOUSE POS: {}, {} PLAYER POS: {}, {}".format(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1], DATA["player"].rect.x, DATA["player"].rect.y), True, (0, 0, 0)), (15, 15))
 
-# Player equipables
-equipablesContainer = pygame.Surface(DATA["equipablesSize"])
-equipablesBorder = pygame.Surface((DATA["equipablesSize"][0]+4, DATA["equipablesSize"][1]+4))
-equipablesContainer.set_alpha(225)
-equipablesBorder.set_alpha(225)
-pygame.Surface.fill(equipablesBorder, (0, 0, 0))
-def equipables_menu():
-    pygame.Surface.fill(equipablesContainer, (255, 255, 255))
-    DATA["DISPLAY"].blit(equipablesBorder, (DATA["DISPLAY_SIZE"][0]-DATA["equipablesSize"][0]-6, DATA["DISPLAY_SIZE"][1]-DATA["equipablesSize"][1]-6))
-    equipablesBorder.blit(equipablesContainer, (2, 2))
-
-# Player shop
-shopContainer = pygame.Surface(DATA["shopSize"])
-shopBorder = pygame.Surface((DATA["shopSize"][0]+4, DATA["shopSize"][1]+4))
-shopBorder.set_alpha(225)
-shopContainer.set_alpha(225)
-def shop():
-    pygame.Surface.fill(shopContainer, (255, 255, 255))
-    DATA["DISPLAY"].blit(shopBorder, (2, DATA["DISPLAY_SIZE"][1]-DATA["shopSize"][1]-6))
-    shopBorder.blit(shopContainer, (2, 2))
-
 # Player Stats
 statsContainer = pygame.Surface(DATA["statsSize"])
 statsBorder = pygame.Surface((DATA["statsSize"][0]+4, DATA["statsSize"][1]+4))
@@ -159,7 +114,7 @@ def stats():
     pygame.Surface.fill(statsContainer, (255, 255, 255))
     textLines = [
         DATA["FONTS"]["default"].render("Doofenheim's Stats", True, (0, 0, 0)),
-        DATA["FONTS"]["default"].render("Money: ${}".format(DATA["player"].coinsCollected), True, (0, 0, 0)),
+        DATA["FONTS"]["default"].render("Money: ${}".format(DATA["player"].money), True, (0, 0, 0)),
         DATA["FONTS"]["default"].render("Health:", True, (0, 0, 0)),
         DATA["FONTS"]["default"].render("Ammo: {}".format(DATA["player"].hotbar[DATA["player"].hand].ammo), True, (0, 0, 0)) if DATA["player"].hotbar[DATA["player"].hand].ammo != -1 else DATA["FONTS"]['default'].render("", True, (0, 0, 0)),
         DATA["FONTS"]["default"].render("enemies: {}".format(len(DATA["enemies"])), True, (0, 0, 0))
@@ -209,5 +164,14 @@ def startScreen(keys):
     DATA["DISPLAY"].blit(startBorder, (23, 23))
     startBorder.blit(startContainer, (2, 2))
 
-def test():
-    print("test")
+def walk_anim(sprite, animImages):
+    sprite.lastFrame = pygame.time.get_ticks() if not sprite.lastFrame else sprite.lastFrame
+
+    if (pygame.time.get_ticks() - sprite.lastFrame) / 1000 > 0.25 and abs(sprite.vel[0]):
+        sprite.lastFrame = pygame.time.get_ticks()
+        sprite.animFrame = sprite.animFrame + 1 if sprite.animFrame + 1 < len(animImages) else 0
+        sprite.image = animImages[sprite.animFrame]
+        if sprite.facing == "L":
+            sprite.image = pygame.transform.flip(sprite.image, True, False)
+    elif not abs(sprite.vel[0]):
+        sprite.image = sprite.idleImage

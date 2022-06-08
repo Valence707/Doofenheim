@@ -61,7 +61,6 @@ class Enemy(pygame.sprite.Sprite):
 
         if self.health <= 0:
             self.kill()
-            DATA["player"].enemiesKilled += 1
             DATA["player"].hotbar[DATA["player"].hand].ammo += random.randrange(1, 7)
 
     def draw(self):
